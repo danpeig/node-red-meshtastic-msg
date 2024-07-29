@@ -104,7 +104,7 @@ Input packet can be either in the string format (*msg.payload*) or Uint8Array (*
 - **\[msg.destination\]** (integer string): Destination node number, *broadcast* or *self*. Detaults to *broadcast*
 - **\[msg.channel\]** (integer): Channel number, defaults to *0* (primary channel)
 - **\[msg.wantAck\]** (boolean):  Confirmation, defaults to *true*
-- **\[msg.wantResponse\]** (boolean): Defaults to *false*.
+- **\[msg.wantResponse\]** (boolean): Defaults to *false*
 - **\[msg.echoResponse\]** (boolean): Defaults to *false*
 - **\[msg.replyId\]** (integer): Defaults to *null*
 - **\[msg.emoji\]** (integer): Defaults to *null*
