@@ -25,6 +25,7 @@ This node allows sending and receiving packets to a Meshtastic mesh network thru
 Meshtastic.js library has many bugs and can crash your Node-RED server in the following known circumstances:
 1. Connection interrupted during initialization can cause an infinite loop.
 2. Sending a packet with `wantResponse` flag set to `true`
+3. Depending on the installation method, you may have to edit the file `meshtastic-msg.js` and change the path of the ImportSync to the location where Meshtastic library was installed. Example: `importSync("../../@meshtastic/js/dist/index.js")`.
 
 ## Examples
 An example flow with the acceptable input message formats can be found in the `examples` sub-directory.

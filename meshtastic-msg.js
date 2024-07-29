@@ -1,5 +1,5 @@
 const importSync = require("import-sync"); //Synchronous module loader
-const meshtasticjs = importSync("../node_modules/@meshtastic/js/dist/index.js"); //This is required because Node-RED does not support ES Modules
+const meshtasticjs = importSync("../../@meshtastic/js/dist/index.js"); //This is required because Node-RED does not support ES Modules
 const HttpConnection = meshtasticjs.HttpConnection;
 
 module.exports = function (RED) {
