@@ -2,7 +2,7 @@
     //-----------------------------------------------------------------------------
     //Send text messages node
     RED.nodes.registerType('meshtastic-msg-send',{
-        category: 'meshtastic',
+        category: 'Meshtastic',
         color: '#67ea94',
         defaults: {
             name: {value:""},
@@ -10,7 +10,7 @@
         },
         inputs: 1,
         outputs: 0,
-        icon: "icons/node-red/bridge.svg",
+        icon: "Mesh_Logo_White.svg",
         paletteLabel: "send text",
         label: function() {
             return this.name||"msh send text";
@@ -20,7 +20,7 @@
     //-----------------------------------------------------------------------------
     //Receive text messages node
     RED.nodes.registerType('meshtastic-msg-receive',{
-        category: 'meshtastic',
+        category: 'Meshtastic',
         color: '#67ea94',
         defaults: {
             name: {value:""},
@@ -28,7 +28,7 @@
         },
         inputs: 0,
         outputs: 1,
-        icon: "icons/node-red/bridge.svg",
+        icon: "Mesh_Logo_White.svg",
         paletteLabel: "receive text",
         label: function() {
             return this.name||"msh receive text";
@@ -37,7 +37,7 @@
     //-----------------------------------------------------------------------------
     //Device status node
     RED.nodes.registerType('meshtastic-msg-status',{
-        category: 'meshtastic',
+        category: 'Meshtastic',
         color: '#67ea94',
         defaults: {
             name: {value:""},
@@ -45,7 +45,7 @@
         },
         inputs: 0,
         outputs: 1,
-        icon: "icons/node-red/bridge.svg",
+        icon: "Mesh_Logo_White.svg",
         paletteLabel: "receive status",
         label: function() {
             return this.name||"msh receive status";
@@ -54,7 +54,7 @@
     //-----------------------------------------------------------------------------
     //Receive generic event node
     RED.nodes.registerType('meshtastic-msg-receiveevent',{
-        category: 'meshtastic',
+        category: 'Meshtastic',
         color: '#67ea94',
         defaults: {
             name: {value:""},
@@ -63,7 +63,7 @@
         },
         inputs: 0,
         outputs: 1,
-        icon: "icons/node-red/bridge.svg",
+        icon: "Mesh_Logo_White.svg",
         paletteLabel: "receive event",
         label: function() {
             return this.name||"msh receive event";
@@ -119,7 +119,7 @@
     //-----------------------------------------------------------------------------
     //Send generic packet node
     RED.nodes.registerType('meshtastic-msg-sendpacket',{
-        category: 'meshtastic',
+        category: 'Meshtastic',
         color: '#67ea94',
         defaults: {
             name: {value:""},
@@ -127,7 +127,7 @@
         },
         inputs: 1,
         outputs: 0,
-        icon: "icons/node-red/bridge.svg",
+        icon: "Mesh_Logo_White.svg",
         paletteLabel: "send packet",
         label: function() {
             return this.name||"msh send packet";
