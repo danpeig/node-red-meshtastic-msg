@@ -1,0 +1,366 @@
+[
+    {
+        "id": "97dd70a8218ed916",
+        "type": "tab",
+        "label": "Meshtastic Msg Demo",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "a79abc1f40457f64",
+        "type": "meshtastic-msg-send",
+        "z": "97dd70a8218ed916",
+        "name": "",
+        "device": "907a3fd0216dbb85",
+        "x": 540,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "b55ccbfb52b7f618",
+        "type": "meshtastic-msg-receive",
+        "z": "97dd70a8218ed916",
+        "name": "Receive text message",
+        "device": "907a3fd0216dbb85",
+        "x": 180,
+        "y": 300,
+        "wires": [
+            [
+                "92e707c3777e0185"
+            ]
+        ]
+    },
+    {
+        "id": "165b1db56dc9d1f6",
+        "type": "debug",
+        "z": "97dd70a8218ed916",
+        "name": "debug status",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "062926cba743d928",
+        "type": "meshtastic-msg-status",
+        "z": "97dd70a8218ed916",
+        "name": "Status",
+        "device": "907a3fd0216dbb85",
+        "x": 110,
+        "y": 400,
+        "wires": [
+            [
+                "165b1db56dc9d1f6"
+            ]
+        ]
+    },
+    {
+        "id": "3d905cc380030585",
+        "type": "meshtastic-msg-receiveevent",
+        "z": "97dd70a8218ed916",
+        "name": "Receive event",
+        "device": "907a3fd0216dbb85",
+        "event": "onPositionPacket",
+        "x": 130,
+        "y": 520,
+        "wires": [
+            [
+                "31e351ac156aa5f7"
+            ]
+        ]
+    },
+    {
+        "id": "92e707c3777e0185",
+        "type": "debug",
+        "z": "97dd70a8218ed916",
+        "name": "debug text",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "31e351ac156aa5f7",
+        "type": "debug",
+        "z": "97dd70a8218ed916",
+        "name": "debug event",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "0f4bef5e43f8521d",
+        "type": "inject",
+        "z": "97dd70a8218ed916",
+        "name": "Full message input",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "channel",
+                "v": "0",
+                "vt": "num"
+            },
+            {
+                "p": "wantAck",
+                "v": "false",
+                "vt": "bool"
+            },
+            {
+                "p": "destination",
+                "v": "4294967295",
+                "vt": "num"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "Testing message 123",
+        "payloadType": "str",
+        "x": 170,
+        "y": 220,
+        "wires": [
+            [
+                "a79abc1f40457f64"
+            ]
+        ]
+    },
+    {
+        "id": "2ae6ade914ed76a5",
+        "type": "inject",
+        "z": "97dd70a8218ed916",
+        "name": "Minimum message input",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "Testing min message",
+        "payloadType": "str",
+        "x": 190,
+        "y": 260,
+        "wires": [
+            [
+                "a79abc1f40457f64"
+            ]
+        ]
+    },
+    {
+        "id": "43be296c7059fbee",
+        "type": "meshtastic-msg-sendpacket",
+        "z": "97dd70a8218ed916",
+        "name": "",
+        "device": "907a3fd0216dbb85",
+        "x": 530,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "56eed97d73f3599d",
+        "type": "inject",
+        "z": "97dd70a8218ed916",
+        "name": "Packet using payload string",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "portNum",
+                "v": "1",
+                "vt": "num"
+            },
+            {
+                "p": "destination",
+                "v": "broadcast",
+                "vt": "str"
+            },
+            {
+                "p": "channel",
+                "v": "0",
+                "vt": "num"
+            },
+            {
+                "p": "wantAck",
+                "v": "true",
+                "vt": "bool"
+            },
+            {
+                "p": "wantResponse",
+                "v": "false",
+                "vt": "bool"
+            },
+            {
+                "p": "echoResponse",
+                "v": "false",
+                "vt": "bool"
+            },
+            {
+                "p": "replyId",
+                "v": "",
+                "vt": "num"
+            },
+            {
+                "p": "emoji",
+                "v": "",
+                "vt": "num"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "I am alive!",
+        "payloadType": "str",
+        "x": 180,
+        "y": 640,
+        "wires": [
+            [
+                "43be296c7059fbee"
+            ]
+        ]
+    },
+    {
+        "id": "dbeede39d102f8bf",
+        "type": "inject",
+        "z": "97dd70a8218ed916",
+        "name": "Packet using byteData",
+        "props": [
+            {
+                "p": "byteData",
+                "v": "[72,101,108,108,111,32,119,111,114,108,100,33]",
+                "vt": "json"
+            },
+            {
+                "p": "portNum",
+                "v": "1",
+                "vt": "num"
+            },
+            {
+                "p": "destination",
+                "v": "broadcast",
+                "vt": "str"
+            },
+            {
+                "p": "channel",
+                "v": "1",
+                "vt": "num"
+            },
+            {
+                "p": "wantAck",
+                "v": "true",
+                "vt": "bool"
+            },
+            {
+                "p": "wantResponse",
+                "v": "false",
+                "vt": "bool"
+            },
+            {
+                "p": "echoResponse",
+                "v": "false",
+                "vt": "bool"
+            },
+            {
+                "p": "replyId",
+                "v": "",
+                "vt": "num"
+            },
+            {
+                "p": "emoji",
+                "v": "",
+                "vt": "num"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 160,
+        "y": 680,
+        "wires": [
+            [
+                "43be296c7059fbee"
+            ]
+        ]
+    },
+    {
+        "id": "850a4a3fa7ebb3d9",
+        "type": "comment",
+        "z": "97dd70a8218ed916",
+        "name": "Text message examples",
+        "info": "Some examples of plain text packets",
+        "x": 120,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "336ebba0d6bc5c35",
+        "type": "comment",
+        "z": "97dd70a8218ed916",
+        "name": "Device status example",
+        "info": "This will check for the device status",
+        "x": 120,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "79fa43db7c73f04a",
+        "type": "comment",
+        "z": "97dd70a8218ed916",
+        "name": "Event example",
+        "info": "Basically, all event notifications from Meshtastic.js can be monitored",
+        "x": 100,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "ad0650a430040e4a",
+        "type": "comment",
+        "z": "97dd70a8218ed916",
+        "name": "Send package examples",
+        "info": "This is for advanced users. You can encode your own data and send trhy the mesh network.",
+        "x": 130,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "907a3fd0216dbb85",
+        "type": "meshtastic-msg-device",
+        "fetch_interval": "2000",
+        "tls": "false",
+        "ip_address": "192.168.1.65"
+    }
+]

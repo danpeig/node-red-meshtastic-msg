@@ -1,0 +1,330 @@
+<script type="text/javascript">
+    //-----------------------------------------------------------------------------
+    //Send text messages node
+    RED.nodes.registerType('meshtastic-msg-send',{
+        category: 'meshtastic',
+        color: '#a6bbcf',
+        defaults: {
+            name: {value:""},
+            device: {value:"", type:"meshtastic-msg-device"},
+        },
+        inputs: 1,
+        outputs: 0,
+        icon: "icons/node-red/bridge.svg",
+        paletteLabel: "send text",
+        label: function() {
+            return this.name||"msh send text";
+        },
+
+    });
+    //-----------------------------------------------------------------------------
+    //Receive text messages node
+    RED.nodes.registerType('meshtastic-msg-receive',{
+        category: 'meshtastic',
+        color: '#a6bbcf',
+        defaults: {
+            name: {value:""},
+            device: {value:"", type:"meshtastic-msg-device"},
+        },
+        inputs: 0,
+        outputs: 1,
+        icon: "icons/node-red/bridge.svg",
+        paletteLabel: "receive text",
+        label: function() {
+            return this.name||"msh receive text";
+        }
+    });
+    //-----------------------------------------------------------------------------
+    //Device status node
+    RED.nodes.registerType('meshtastic-msg-status',{
+        category: 'meshtastic',
+        color: '#a6bbcf',
+        defaults: {
+            name: {value:""},
+            device: {value:"", type:"meshtastic-msg-device"},
+        },
+        inputs: 0,
+        outputs: 1,
+        icon: "icons/node-red/bridge.svg",
+        paletteLabel: "receive status",
+        label: function() {
+            return this.name||"msh receive status";
+        }
+    });
+    //-----------------------------------------------------------------------------
+    //Receive generic event node
+    RED.nodes.registerType('meshtastic-msg-receiveevent',{
+        category: 'meshtastic',
+        color: '#a6bbcf',
+        defaults: {
+            name: {value:""},
+            device: {value:"", type:"meshtastic-msg-device"},
+            event: {value:"onDeviceStatus",required: true},
+        },
+        inputs: 0,
+        outputs: 1,
+        icon: "icons/node-red/bridge.svg",
+        paletteLabel: "receive event",
+        label: function() {
+            return this.name||"msh receive event";
+        },
+        oneditprepare: function (optionsList) {
+            $("#node-input-event").typedInput({
+                types: [
+                    {
+                        value: "event",
+                        options: //Someday I need to populate this automatically 
+                            [
+                            { value: "onChannelPacket", label: "onChannelPacket"},
+                            { value: "onConfigPacket", label: "onConfigPacket"},
+                            { value: "onDetectionSensorPacket", label: "onDetectionSensorPacket"},
+                            { value: "onDeviceDebugLog", label: "onDeviceDebugLog"},
+                            { value: "onDeviceStatus", label: "onDeviceStatus"},
+                            { value: "onFromRadio", label: "onFromRadio"},
+                            { value: "onIpTunnelPacket", label: "onIpTunnelPacket"},
+                            { value: "onLogEvent", label: "onLogEvent"},
+                            { value: "onLogRecord", label: "onLogRecord"},
+                            { value: "onMapReportPacket", label: "onMapReportPacket"},
+                            { value: "onMeshHeartbeat", label: "onMeshHeartbeat"},
+                            { value: "onMeshPacket", label: "onMeshPacket"},
+                            { value: "onMessagePacket", label: "onMessagePacket"},
+                            { value: "onModuleConfigPacket", label: "onModuleConfigPacket"},
+                            { value: "onMyNodeInfo", label: "onMyNodeInfo"},
+                            { value: "onNeighborInfoPacket", label: "onNeighborInfoPacket"},
+                            { value: "onNodeInfoPacket", label: "onNodeInfoPacket"},
+                            { value: "onPaxcounterPacket", label: "onPaxcounterPacket"},
+                            { value: "onPendingSettingsChange", label: "onPendingSettingsChange"},
+                            { value: "onPingPacket", label: "onPingPacket"},
+                            { value: "onPositionPacket", label: "onPositionPacket"},
+                            { value: "onPrivatePacket", label: "onPrivatePacket"},
+                            { value: "onQueueStatus", label: "onQueueStatus"},
+                            { value: "onRangeTestPacket", label: "onRangeTestPacket"},
+                            { value: "onRemoteHardwarePacket", label: "onRemoteHardwarePacket"},
+                            { value: "onRoutingPacket", label: "onRoutingPacket"},
+                            { value: "onSerialPacket", label: "onSerialPacket"},
+                            { value: "onSimulatorPacket", label: "onSimulatorPacket"},
+                            { value: "onStoreForwardPacket", label: "onStoreForwardPacket"},
+                            { value: "onTelemetryPacket", label: "onTelemetryPacket"},
+                            { value: "onTraceRoutePacket", label: "onTraceRoutePacket"},
+                            { value: "onUserPacket", label: "onUserPacket"},
+                            { value: "onWaypointPacket", label: "onWaypointPacket"},
+                            { value: "onZpsPacket", label: "onZpsPacket"}
+                        ]
+                    }
+                ]
+            });
+
+        },
+    });
+    //-----------------------------------------------------------------------------
+    //Send generic packet node
+    RED.nodes.registerType('meshtastic-msg-sendpacket',{
+        category: 'meshtastic',
+        color: '#a6bbcf',
+        defaults: {
+            name: {value:""},
+            device: {value:"", type:"meshtastic-msg-device"},
+        },
+        inputs: 1,
+        outputs: 0,
+        icon: "icons/node-red/bridge.svg",
+        paletteLabel: "send packet",
+        label: function() {
+            return this.name||"msh send packet";
+        },
+
+    });
+    //-----------------------------------------------------------------------------
+    //Meshtastic device configuration node
+    RED.nodes.registerType('meshtastic-msg-device',{
+        category: 'config',
+        defaults: {
+            fetch_interval: {value:5000},
+            tls: {value:false},
+            ip_address: {value:"meshtastic.local",required: true}
+        },
+        label: function() {
+            return this.ip_address;
+        },
+        oneditprepare: function () {
+            $("#node-config-input-ip_address").typedInput({
+                type:"str",
+                types:["str"]
+            });
+            $("#node-config-input-tls").typedInput({
+                type:"bool",
+                types:["bool"]
+            });
+            $("#node-config-input-fetch_interval").typedInput({
+                type:"num",
+                types:["num"]
+            });
+        },
+    });
+</script>
+
+<!------------------------------------------------------------------------------------------->
+<!-- Send text messages node -->
+<script type="text/html" data-template-name="meshtastic-msg-send">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-device"><i class="fa fa-tag"></i> Meshtastic device</label>
+        <input type="text" id="node-input-device" placeholder="">
+    </div>
+</script>
+<!------------------------------------------------------------------------------------------->
+<!-- Receive text messages node -->
+<script type="text/html" data-template-name="meshtastic-msg-receive">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-device"><i class="fa fa-tag"></i> Meshtastic device</label>
+        <input type="text" id="node-input-device" placeholder="">
+    </div>
+</script>
+<!------------------------------------------------------------------------------------------->
+<!-- Receive status node -->
+<script type="text/html" data-template-name="meshtastic-msg-status">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-device"><i class="fa fa-tag"></i> Meshtastic device</label>
+        <input type="text" id="node-input-device" placeholder="">
+    </div>
+</script>
+<!------------------------------------------------------------------------------------------->
+<!-- Receive generic event -->
+<script type="text/html" data-template-name="meshtastic-msg-receiveevent">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-device"><i class="fa fa-tag"></i> Meshtastic device</label>
+        <input type="text" id="node-input-device" placeholder="">
+    </div>
+    <div class="form-row">
+        <label for="node-input-event"><i class="fa fa-tag"></i> Event</label>
+        <input type="text" id="node-input-event" placeholder="">
+    </div>
+</script>
+<!------------------------------------------------------------------------------------------->
+<!-- Send packet -->
+<script type="text/html" data-template-name="meshtastic-msg-sendpacket">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-device"><i class="fa fa-tag"></i> Meshtastic device</label>
+        <input type="text" id="node-input-device" placeholder="">
+    </div>
+</script>
+<!------------------------------------------------------------------------------------------->
+<!-- Meshtastic device configuration node -->
+<script type="text/html" data-template-name="meshtastic-msg-device">
+    <div class="form-row">
+        <label for="node-config-input-ip_address"><i class="fa fa-tag"></i> IP or hostname</label>
+        <input type="text" id="node-config-input-ip_address" placeholder="meshtastic.local">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-tls"><i class="fa fa-tag"></i> Use TLS</label>
+        <input type="text" id="node-config-input-tls">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-fetch_interval"><i class="fa fa-tag"></i> Fetch interval (ms)</label>
+        <input type="text" id="node-config-input-fetch_interval" placeholder="5000">
+    </div>
+</script>
+
+<!------------------------------------------------------------------------------------------->
+<!-- Send text message node -->
+<script type="text/markdown" data-help-name="meshtastic-msg-send">
+Send a text message to the mesh connected device
+
+### Input
+
+: payload (string) :  the text message to be sent to the network
+: *channel* (integer):  the Meshtastic channel number. Defaults to 0 (primary)
+: *destination* (integer):  the destination node number. Defaults to 4294967295 (broadcast)
+: *wantAck* (boolean):  if the receiving devices should acknowldege receipt. Defaults to true
+
+
+</script>
+
+<!------------------------------------------------------------------------------------------->
+<!-- Receive text message node -->
+<script type="text/markdown" data-help-name="meshtastic-msg-receive">
+Receive a text message from the mesh connected device
+
+### Outputs
+
+: msg (json) : object with all package properties
+: msg.payload (string): text content of the message 
+
+</script>
+
+<!------------------------------------------------------------------------------------------->
+<!-- Receive status node -->
+<script type="text/markdown" data-help-name="meshtastic-msg-status">
+Receive the status code of the Meshtastic device
+    
+### Outputs
+    
+: msg.payload (integer): status code of the device
+</script>
+
+<!------------------------------------------------------------------------------------------->
+<!-- Receive generic event node -->
+<script type="text/markdown" data-help-name="meshtastic-msg-receiveevent">
+This node will watch for the defined event and output the payload received.
+Typically, the output should be a JSON field but there are some events that report numbers or simple strings.
+The events list comes from Mesthastic.js [Event System Class](https://js.meshtastic.org/classes/Utils.EventSystem.html)
+
+### Settings
+: event (string): select the event to monitor/watch
+
+### Outputs
+: msg (json): data from the event
+</script>
+
+<!------------------------------------------------------------------------------------------->
+<!-- Send generic packet node -->
+<script type="text/markdown" data-help-name="meshtastic-msg-sendpacket">
+Send a packet to the mesh connected device.
+Input packet can be either in the string format (*msg.payload*) or Uint8Array (*msg.byteData*) format.
+
+### Input
+
+: payload (string): Will be converted to Uint8Array and used if *byteData* field is not set
+: *byteData* (json) : Data properly encoded as Uint8Array. If set, will be used instead of *payload*. Example [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33]
+: *portNum* (integer): Application number. Defaults to 1 (text messsage).
+: *destination* (integer string): Destination node. Can be a number, "broadcast" or "self".
+: *channel* (integer): Channel number, defaults to 0 (primary)
+: *wantAck* (boolean):  Confirmation, defaults to true
+: *wantResponse* (boolean): Defaults to false.
+: *echoResponse* (boolean): Defaults to false
+: *replyId* (integer): Defaults to null
+: *emoji* (integer): Defaults to null
+
+</script>
+
+<!------------------------------------------------------------------------------------------->
+<!-- Meshtastic device configuration node -->
+<script type="text/markdown" data-help-name="meshtastic-msg-device">
+This will setup the connection to the Meshtastic node.
+The connection protocol is HTTP. Serial, Bluetooth or MQTT are not supported.
+
+### Options
+
+* IP or hostname (string) : IP address or hostname of the Meshtastic device to connect. Examples: *192.168.0.15*, *meshtastic.local*
+* Use TLS (boolean): If true, the connection will be performed using TLS (encrypted). Default is false as most of the devices are not configured for it. 
+* Fetch interval (integer): Interval between polling data from the device. Default is 5000ms.
+</script>
