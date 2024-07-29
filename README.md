@@ -61,9 +61,9 @@ Send a text message to the mesh connected device
 
 ### Input
 - msg.payload (string) :  the text message to be sent to the network
-- *msg.channel* (integer):  the Meshtastic channel number. Defaults to *0* (primary)
-- *msg.destination* (integer):  the destination node number, *broadcast* or *self*. Defaults *broadcast*
-- *msg.wantAck* (boolean):  if the receiving devices should acknowldege receipt. Defaults to *true*
+- \[msg.channel\] (integer):  the Meshtastic channel number. Defaults to *0* (primary)
+- \[msg.destination\] (integer):  the destination node number, *broadcast* or *self*. Defaults *broadcast*
+- \[msg.wantAck\] (boolean):  if the receiving devices should acknowldege receipt. Defaults to *true*
 
 *italic* = optional fields
 
