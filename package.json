@@ -11,6 +11,11 @@
     "@meshtastic/js": "^2.3.7-0",
     "import-sync": "^2.2.2"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danpeig/node-red-meshtastic-msg.git"
+  },
+  "homepage": "https://github.com/danpeig/node-red-meshtastic-msg",
   "keywords": [ "node-red" ],
   "node-red": {
     "nodes": {
