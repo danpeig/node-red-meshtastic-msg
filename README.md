@@ -14,9 +14,11 @@ This node allows sending and receiving packets to a Meshtastic mesh network thru
 - Connect to a Lora mesh without a physical device/radio (people asked that!)
 
 ## Manual installation
-- Add the project files to a folder called `node-red-meshtastic-msg` inside the Node-RED base directory (where the `settings.js` is located)
-- Run `npm install ./node-red-meshtastic-msg`
-- To uninstall, run `npm remove @danpeig/node-red-meshtastic-msg` from the same base directory.
+1. Add the project files to a folder called `node-red-meshtastic-msg` inside the Node-RED base directory (where the `settings.js` is located)
+2. Run `npm install ./node-red-meshtastic-msg`
+3. Edit `meshtastic-msg.js` and change the relative path of the Meshtastic library according to the existing directory structure. Example: `importSync("../node_modules/@meshtastic/js/dist/index.js")`.
+
+To uninstall, run `npm remove @danpeig/node-red-meshtastic-msg` from the same base directory.
 
 ## Automatic installation
 - Search for the package `@danpeig/node-red-meshtastic-msg` in the Node-RED community catalogue or NPM.
@@ -33,7 +35,7 @@ An example flow with the acceptable input message formats can be found in the `e
 ![Example flow](resources/flow_example.png "Example flow")
 
 ## Bonus
-The `experiments_meshtastic.js` illustrates how to use the Meshtastic.js library from plain Javascript (No TS, no react, no nothing).
+The `experiments_meshtastic.js` illustrates how to use Meshtastic.js library from plain Javascript (No TypeScript, no React, no compilation, no nothing).
 
 ## License
 This node was created by [Daniel BP](http://www.danbp.org) ans is available under the MIT license.
