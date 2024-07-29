@@ -1,4 +1,4 @@
-# Node-RED Meshtastic Messages Node
+# Node-RED Meshtastic messages node
 
 This node allows sending and receiving packets to a Meshtastic mesh network thru a device connected via HTTP. It is based on [Meshtastic.js](https://js.meshtastic.org/) library.
 
