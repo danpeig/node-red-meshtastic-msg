@@ -61,7 +61,7 @@ Send a text message to the mesh connected device
 
 ### Input
 - msg.payload (string) :  the text message to be sent to the network
-- *msg.channel* (integer):  the Meshtastic channel number. Defaults to 0 (primary)
+- *msg.channel* (integer):  the Meshtastic channel number. Defaults to *0* (primary)
 - *msg.destination* (integer):  the destination node number, *broadcast* or *self*. Defaults *broadcast*
 - *msg.wantAck* (boolean):  if the receiving devices should acknowldege receipt. Defaults to *true*
 
@@ -84,7 +84,7 @@ Receive the status code of the Meshtastic device
 ## Receive event node
 This node will watch for the defined event and output the payload received.
 Typically, the output should be a JSON field but there are some events that report numbers or simple strings.
-The events list comes from Mesthastic.js [Event System Class](https://js.meshtastic.org/classes/Utils.EventSystem.html)
+The events list comes from [Mesthastic.js Event System Class](https://js.meshtastic.org/classes/Utils.EventSystem.html)
 
 ### Settings
 - event (string): select the event to monitor/watch
@@ -100,9 +100,9 @@ Input packet can be either in the string format (*msg.payload*) or Uint8Array (*
 
 - msg.payload (string): Will be converted to Uint8Array and used if *byteData* field is not set
 - *msg.byteData* (json) : Data properly encoded as Uint8Array. If set, will be used instead of *payload*. Example [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33]
-- *msg.portNum* (integer): Application number. Defaults to 1 (text messsage app).
+- *msg.portNum* (integer): Application number. Defaults to *1* (text messsage app).
 - *msg.destination* (integer string): Destination node number, *broadcast* or *self*. Detaults to *broadcast*
-- *msg.channel* (integer): Channel number, defaults to 0 (primary channel)
+- *msg.channel* (integer): Channel number, defaults to *0* (primary channel)
 - *msg.wantAck* (boolean):  Confirmation, defaults to *true*
 - *msg.wantResponse* (boolean): Defaults to *false*.
 - *msg.echoResponse* (boolean): Defaults to *false*
