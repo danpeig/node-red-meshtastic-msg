@@ -139,8 +139,8 @@
     RED.nodes.registerType('meshtastic-msg-device',{
         category: 'config',
         defaults: {
-            fetch_interval: {value:5000},
-            tls: {value:false},
+            fetch_interval: {value:5000, required: true},
+            tls: {value:false, required: true},
             ip_address: {value:"meshtastic.local",required: true}
         },
         label: function() {
@@ -251,10 +251,10 @@ Send a text message to the mesh connected device
 
 ### Input
 
-: payload (string) :  the text message to be sent to the network
-: *channel* (integer):  the Meshtastic channel number. Defaults to 0 (primary)
-: *destination* (integer):  the destination node number. Defaults to 4294967295 (broadcast)
-: *wantAck* (boolean):  if the receiving devices should acknowldege receipt. Defaults to true
+: msg.payload (string) :  the text message to be sent to the network
+: *msg.channel* (integer):  the Meshtastic channel number. Defaults to 0 (primary)
+: *msg.destination* (integer):  the destination node number, *broadcast* or *self*. Defaults to *broadcast*
+: *msg.wantAck* (boolean):  if the receiving devices should acknowldege receipt. Defaults to *true*
 
 
 </script>
@@ -286,7 +286,7 @@ Receive the status code of the Meshtastic device
 <script type="text/markdown" data-help-name="meshtastic-msg-receiveevent">
 This node will watch for the defined event and output the payload received.
 Typically, the output should be a JSON field but there are some events that report numbers or simple strings.
-The events list comes from Mesthastic.js [Event System Class](https://js.meshtastic.org/classes/Utils.EventSystem.html)
+The events list comes from [Mesthastic.js Event System Class](https://js.meshtastic.org/classes/Utils.EventSystem.html)
 
 ### Settings
 : event (string): select the event to monitor/watch
@@ -303,16 +303,16 @@ Input packet can be either in the string format (*msg.payload*) or Uint8Array (*
 
 ### Input
 
-: payload (string): Will be converted to Uint8Array and used if *byteData* field is not set
-: *byteData* (json) : Data properly encoded as Uint8Array. If set, will be used instead of *payload*. Example [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33]
-: *portNum* (integer): Application number. Defaults to 1 (text messsage).
-: *destination* (integer string): Destination node. Can be a number, "broadcast" or "self".
-: *channel* (integer): Channel number, defaults to 0 (primary)
-: *wantAck* (boolean):  Confirmation, defaults to true
-: *wantResponse* (boolean): Defaults to false.
-: *echoResponse* (boolean): Defaults to false
-: *replyId* (integer): Defaults to null
-: *emoji* (integer): Defaults to null
+: msgpayload (string): Will be converted to Uint8Array and used if *byteData* field is not set
+: *msg.byteData* (json) : Data properly encoded as Uint8Array. If set, will be used instead of *payload*. Example [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33]
+: *msg.portNum* (integer): Application number. Defaults to 1 (text messsage app)
+: *msg.destination* (integer string): Destination node number, *broadcast* or *self*. Detaults to *broadcast*
+: *msg.channel* (integer): Channel number, defaults to *0* (primary)
+: *msg.wantAck* (boolean):  Confirmation, defaults to *true*
+: *msg.wantResponse* (boolean): Defaults to *false*
+: *msg.echoResponse* (boolean): Defaults to *false*
+: *msg.replyId* (integer): Defaults to *null*
+: *msg.emoji* (integer): Defaults to *null*
 
 </script>
 
