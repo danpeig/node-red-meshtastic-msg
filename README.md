@@ -3,12 +3,12 @@
 This node allows sending and receiving packets to a Meshtastic mesh network thru a device connected via HTTP. It is based on [Meshtastic.js](https://js.meshtastic.org/) library.
 
 ## Features
-- Send and receive text messages to any device in the mesh
+- Send and receive text messages to/from any device in the mesh
 - Supervise/monitor device status
 - Subscribe and receive all types of events supported by Meshtastic.js (examples: Atak, Position, Range Test, Map Report, Store and Forward, etc...)
-- Send packets to any Meshtastic APP (port)
+- Send packets to any Meshtastic APP (port num)
 - Plug and Play: no additional servers, no containers, no CLI, no binary files
-- Indirect support to MQTT via channels with uplink/downlink enabled
+- Indirect support to MQTT via uplink/downlink channels
 
 ## Limitations
 - Connect directly to MQTT server: this is not supported by [Meshtastic.js](https://js.meshtastic.org/)
