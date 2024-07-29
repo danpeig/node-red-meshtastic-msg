@@ -29,6 +29,8 @@ Meshtastic.js library has many bugs and can crash your Node-RED server in the fo
 ## Examples
 An example flow with the acceptable input message formats can be found in the `examples` sub-directory.
 
+![Example flow](resources/flow_example.png "Example flow")
+
 ## Bonus
 The `experiments_meshtastic.js` illustrates how to use the Meshtastic.js library from plain Javascript (No TS, no react, no nothing).
 
