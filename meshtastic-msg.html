@@ -134,6 +134,24 @@
         },
 
     });
+	//-----------------------------------------------------------------------------
+    //Receive Meshtastic.js log node
+    RED.nodes.registerType('meshtastic-msg-log',{
+        category: 'Meshtastic',
+        color: '#67ea94',
+        defaults: {
+            name: {value:""},
+            device: {value:"", type:"meshtastic-msg-device"},
+        },
+        inputs: 0,
+        outputs: 1,
+        icon: "Mesh_Logo_White.svg",
+        paletteLabel: "log",
+        label: function() {
+            return this.name||"msh log";
+        },
+
+    });
     //-----------------------------------------------------------------------------
     //Meshtastic device configuration node
     RED.nodes.registerType('meshtastic-msg-device',{
@@ -218,6 +236,18 @@
 <!------------------------------------------------------------------------------------------->
 <!-- Send packet -->
 <script type="text/html" data-template-name="meshtastic-msg-sendpacket">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-device"><i class="fa fa-tag"></i> Meshtastic device</label>
+        <input type="text" id="node-input-device" placeholder="">
+    </div>
+</script>
+<!------------------------------------------------------------------------------------------->
+<!-- Receive Meshtastic.js log node -->
+<script type="text/html" data-template-name="meshtastic-msg-log">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
@@ -313,6 +343,19 @@ Input packet can be either in the string format (*msg.payload*) or Uint8Array (*
 : *msg.echoResponse* (boolean): Defaults to *false*
 : *msg.replyId* (integer): Defaults to *null*
 : *msg.emoji* (integer): Defaults to *null*
+
+</script>
+
+<!------------------------------------------------------------------------------------------->
+<!-- Receive Meshtastic.js log node -->
+<script type="text/markdown" data-help-name="meshtastic-msg-log">
+Output the log from [Mesthastic.js](https://js.meshtastic.org) library. Usefull for debug purposes and connection status info.
+**Note:** This is not Node-RED log neither the Lora device log.
+
+### Outputs
+
+: msg (json) : object with all log message properties
+: msg.payload (string): text content of the log entry (fields \[0\] and \[1\] concatenated)
 
 </script>
 

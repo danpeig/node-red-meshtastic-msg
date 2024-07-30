@@ -1,17 +1,14 @@
 # Node-RED Meshtastic messages node
 
-This node allows sending and receiving text messages and packets to a Meshtastic network thru a device connected via HTTP. It is based on [Meshtastic.js](https://js.meshtastic.org/) library.
-
-This tool was designed to be super simple  to use. The user does not have to worry about protobufs or any sort of enconding. Inputs and outputs are either plain text or readable JSON strings.
+This node allows sending and receiving packets to a Meshtastic mesh network thru a device connected via HTTP. It is based on [Meshtastic.js](https://js.meshtastic.org/) library.
 
 ## Features
 - Send and receive text messages to/from any device in the mesh
 - Supervise/monitor device status
 - Subscribe and receive all types of events supported by Meshtastic.js (examples: Atak, Position, Range Test, Map Report, Store and Forward, etc...)
 - Send packets to any Meshtastic APP (port num)
-- Plug and Play: Node-RED is the only requirement. No additional servers, libraries or external dependencies
+- Plug and Play: no additional servers, no containers, no CLI, no binary files
 - Indirect support to MQTT via uplink/downlink channels
-- Forget about protobufs
 
 ## Limitations
 - Connect directly to MQTT server: this is not supported by [Meshtastic.js](https://js.meshtastic.org/)
@@ -45,6 +42,8 @@ The `experiments_meshtastic.js` illustrates how to use [Meshtastic.js](https://j
 This node was created by [Daniel BP](http://www.danbp.org) and is available under the MIT license.
 
 ## Version history
+- **1.3 (30/07/2024)**
+    - Added Meshtastic.js log node
 - **1.2 (29/07/2024)**
     - Improved documentation
     - Meshtastic visual identity
@@ -113,6 +112,15 @@ Input packet can be either in the string format (*msg.payload*) or Uint8Array (*
 - **\[msg.emoji\]** (integer): Defaults to *null*
 
 **[]** = optional fields
+
+## Receive Meshtastic.js log node
+Output the log from [Mesthastic.js](https://js.meshtastic.org) library. Usefull for debug purposes and connection status info.
+**Note:** This is not Node-RED log neither the Lora device log.
+
+### Outputs
+
+- **msg** (json) : object with all log message properties
+- **msg.payload** (string): text content of the log entry (fields \[0\] and \[1\] concatenated) 
 
 ## Device configuration node
 This will setup the connection to the Meshtastic node.

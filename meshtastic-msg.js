@@ -182,6 +182,29 @@ module.exports = function (RED) {
   RED.nodes.registerType("meshtastic-msg-sendpacket", SendPacket);
 
   //-----------------------------------------------------------------------------
+  //Receive Meshtastic.js log messages node
+  function ReceiveLog(config) {
+    RED.nodes.createNode(this, config);
+    var node = this;
+
+    // Retrieve the Meshtastic device node
+    let device = RED.nodes.getNode(config.device);
+
+    //Check if the device is configured
+    if (device) {
+      try {
+        device.connection.log.attachTransport((data) => {
+			data.payload = data[0] + ": " + data[1];
+            node.send(data);
+            });
+      } catch (e) {
+        console.log("Exception in the log event monitor. Error: " + e);
+      }
+    }
+  }
+  RED.nodes.registerType("meshtastic-msg-log", ReceiveLog);
+
+  //-----------------------------------------------------------------------------
   //Meshtastic device configuration node
   function DeviceNode(config) {
     RED.nodes.createNode(this, config);
