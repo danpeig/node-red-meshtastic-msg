@@ -15,9 +15,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - run: npm install
       - run: npm ci
       - run: npm test
-
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
