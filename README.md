@@ -9,8 +9,9 @@ This tool was designed to be super simple  to use. The user does not have to wor
 - Supervise/monitor device status
 - Subscribe and receive all types of events supported by Meshtastic.js (examples: Atak, Position, Range Test, Map Report, Store and Forward, etc...)
 - Send packets to any Meshtastic APP (port num)
-- Plug and Play: Node-RED is the only requirement. No additional servers, libraries or external dependencies.
-- Indirect support to MQTT via uplink/downlink channels.
+- Plug and Play: Node-RED is the only requirement. No additional servers, libraries or external dependencies
+- Indirect support to MQTT via uplink/downlink channels
+- Forget about protobufs
 
 ## Limitations
 - Connect directly to MQTT server: this is not supported by [Meshtastic.js](https://js.meshtastic.org/)
