@@ -35,16 +35,16 @@
         "id": "165b1db56dc9d1f6",
         "type": "debug",
         "z": "97dd70a8218ed916",
-        "name": "debug status",
+        "name": "status example output",
         "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
+        "complete": "payload",
+        "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 530,
+        "x": 560,
         "y": 400,
         "wires": []
     },
@@ -81,7 +81,7 @@
         "id": "92e707c3777e0185",
         "type": "debug",
         "z": "97dd70a8218ed916",
-        "name": "debug text",
+        "name": "text example output",
         "active": true,
         "tosidebar": true,
         "console": false,
@@ -90,7 +90,7 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 530,
+        "x": 550,
         "y": 300,
         "wires": []
     },
@@ -98,7 +98,7 @@
         "id": "31e351ac156aa5f7",
         "type": "debug",
         "z": "97dd70a8218ed916",
-        "name": "debug event",
+        "name": "event example output",
         "active": true,
         "tosidebar": true,
         "console": false,
@@ -107,7 +107,7 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 530,
+        "x": 560,
         "y": 520,
         "wires": []
     },
@@ -141,7 +141,7 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "Testing message 123",
+        "payload": "Testing full message 123",
         "payloadType": "str",
         "x": 170,
         "y": 220,
@@ -166,7 +166,7 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "Testing min message",
+        "payload": "Testing min message 456",
         "payloadType": "str",
         "x": 190,
         "y": 260,
@@ -321,7 +321,7 @@
         "type": "comment",
         "z": "97dd70a8218ed916",
         "name": "Text message examples",
-        "info": "Some examples of plain text packets",
+        "info": "Some examples of plain text messages.",
         "x": 120,
         "y": 160,
         "wires": []
@@ -331,7 +331,7 @@
         "type": "comment",
         "z": "97dd70a8218ed916",
         "name": "Device status example",
-        "info": "This will check for the device status",
+        "info": "This will check for the device status.",
         "x": 120,
         "y": 360,
         "wires": []
@@ -350,10 +350,51 @@
         "id": "ad0650a430040e4a",
         "type": "comment",
         "z": "97dd70a8218ed916",
-        "name": "Send package examples",
-        "info": "This is for advanced users. You can encode your own data and send trhy the mesh network.",
-        "x": 130,
+        "name": "Send packet examples",
+        "info": "This is for advanced users.\nIt will forward data to a specific portNum (Meshtastic APP).\nThe current example, send a package to the TEXT_MESSAGE app.\n",
+        "x": 120,
         "y": 600,
+        "wires": []
+    },
+    {
+        "id": "e3870d13f94c3049",
+        "type": "comment",
+        "z": "97dd70a8218ed916",
+        "name": "Meshtastic.js log",
+        "info": "Output the Meshtastic.js log. Usefull for debug purposes. A little too verbose for anything else...",
+        "x": 100,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "47721c88bf6b2464",
+        "type": "meshtastic-msg-log",
+        "z": "97dd70a8218ed916",
+        "name": "Meshtastic.js log",
+        "device": "907a3fd0216dbb85",
+        "x": 120,
+        "y": 780,
+        "wires": [
+            [
+                "f5c0cd533afe601d"
+            ]
+        ]
+    },
+    {
+        "id": "f5c0cd533afe601d",
+        "type": "debug",
+        "z": "97dd70a8218ed916",
+        "name": "log example output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 780,
         "wires": []
     },
     {
@@ -361,6 +402,6 @@
         "type": "meshtastic-msg-device",
         "fetch_interval": "2000",
         "tls": "false",
-        "ip_address": "192.168.1.65"
+        "ip_address": "meshtastic.local"
     }
 ]
