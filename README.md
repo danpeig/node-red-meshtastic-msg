@@ -62,26 +62,26 @@ This information can also be found in the specific node help pages, directly fro
 Send a text message to the mesh connected device
 
 ### Input
-- msg.payload (string) :  the text message to be sent to the network
-- **\[msg.channel\]** (integer):  the Meshtastic channel number. Defaults to *0* (primary)
-- **\[msg.destination\]** (integer):  the destination node number, *broadcast* or *self*. Defaults *broadcast*
-- **\[msg.wantAck\]** (boolean):  if the receiving devices should acknowldege receipt. Defaults to *true*
+- `msg.payload` (string) :  the text message to be sent to the network
+- `[msg.channel]` (integer):  the Meshtastic channel number. Defaults to *0* (primary)
+- `[msg.destination]` (integer):  the destination node number, *broadcast* or *self*. Defaults *broadcast*
+- `[msg.wantAck]` (boolean):  if the receiving devices should acknowldege receipt. Defaults to *true*
 
-**[]** = optional fields
+[] = optional fields
 
 ## Receive text node
 Receive a text message from the mesh connected device
 
 ### Outputs
-- **msg** (json) : object with all package properties
-- **msg.payload** (string): text content of the message 
+- `msg` (json) : object with all package properties
+- `msg.payload` (string): text content of the message 
 
 ## Receive status node
 Receive the status code of the Meshtastic device
     
 ### Outputs
     
-- **msg.payload** (integer): status code of the device
+- `msg.payload` (integer): status code of the device
 
 ## Receive event node
 This node will watch for the defined event and output the payload received.
@@ -89,10 +89,10 @@ Typically, the output should be a JSON field but there are some events that repo
 The events list comes from [Mesthastic.js Event System Class](https://js.meshtastic.org/classes/Utils.EventSystem.html)
 
 ### Settings
-- **event** (string): select the event to monitor/watch
+- `event` (string): select the event to monitor/watch
 
 ### Outputs
-- **msg** (json): data from the event
+- `msg` (json): data from the event
 
 ## Send packet node
 Send a packet to the mesh connected device.
@@ -100,18 +100,18 @@ Input packet can be either in the string format (*msg.payload*) or Uint8Array (*
 
 ### Input
 
-- **msg.payload** (string): Will be converted to Uint8Array and used if *byteData* field is not set
-- **\[msg.byteData\]** (json) : Data properly encoded as Uint8Array. If set, will be used instead of *payload*. Example [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33]
-- **\[msg.portNum\]** (integer): Application number. Defaults to *1* (text messsage app).
-- **\[msg.destination\]** (integer string): Destination node number, *broadcast* or *self*. Detaults to *broadcast*
-- **\[msg.channel\]** (integer): Channel number, defaults to *0* (primary channel)
-- **\[msg.wantAck\]** (boolean):  Confirmation, defaults to *true*
-- **\[msg.wantResponse\]** (boolean): Defaults to *false*
-- **\[msg.echoResponse\]** (boolean): Defaults to *false*
-- **\[msg.replyId\]** (integer): Defaults to *null*
-- **\[msg.emoji\]** (integer): Defaults to *null*
+- `msg.payload` (string): Will be converted to Uint8Array and used if *byteData* field is not set
+- `[msg.byteData]` (json) : Data properly encoded as Uint8Array. If set, will be used instead of *payload*. Example *[72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33]*
+- `[msg.portNum]` (integer): Application number. Defaults to *1* (text messsage app).
+- `[msg.destination]` (integer string): Destination node number, *broadcast* or *self*. Detaults to *broadcast*
+- `[msg.channel]` (integer): Channel number, defaults to *0* (primary channel)
+- `[msg.wantAck]` (boolean):  Confirmation, defaults to *true*
+- `[msg.wantResponse]` (boolean): Defaults to *false*
+- `[msg.echoResponse]` (boolean): Defaults to *false*
+- `[msg.replyId]` (integer): Defaults to *null*
+- `[msg.emoji]` (integer): Defaults to *null*
 
-**[]** = optional fields
+[] = optional fields
 
 ## Receive Meshtastic.js log node
 Output the log from [Mesthastic.js](https://js.meshtastic.org) library. Usefull for debug purposes and connection status info.
@@ -119,14 +119,14 @@ Output the log from [Mesthastic.js](https://js.meshtastic.org) library. Usefull 
 
 ### Outputs
 
-- **msg** (json) : object with all log message properties
-- **msg.payload** (string): text content of the log entry (fields \[0\] and \[1\] concatenated) 
+- `msg` (json) : object with all log message properties
+- `msg.payload` (string): text content of the log entry (fields \[0\] and \[1\] concatenated) 
 
 ## Device configuration node
 This will setup the connection to the Meshtastic node.
 The connection protocol is HTTP. Serial, Bluetooth or MQTT are not supported.
 
 ### Options
-* **IP or hostname** (string) : IP address or hostname of the Meshtastic device to connect. Examples: *192.168.0.15*, *meshtastic.local*
-* **Use TLS** (boolean): If true, the connection will be performed using TLS (encrypted). Default is *false* as most of the devices are not configured for it.
-* **Fetch interval** (integer): Interval between polling data from the device. Default is *5000ms*.
+* `IP or hostname` (string) : IP address or hostname of the Meshtastic device to connect. Examples: *192.168.0.15*, *meshtastic.local*
+* `Use TLS` (boolean): If true, the connection will be performed using TLS (encrypted). Default is *false* as most of the devices are not configured for it.
+* `Fetch interval` (integer): Interval between polling data from the device. Default is *5000ms*.
