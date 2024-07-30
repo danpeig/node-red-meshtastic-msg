@@ -9,6 +9,8 @@ This node allows sending and receiving packets to a Meshtastic mesh network thru
 - Send packets to any Meshtastic APP (port num)
 - Plug and Play: no additional servers, no containers, no CLI, no binary files
 - Indirect support to MQTT via uplink/downlink channels
+- No need to worry about Protobuf encoding/decoding. Life should be easy!
+
 
 ## Limitations
 - Connect directly to MQTT server: this is not supported by [Meshtastic.js](https://js.meshtastic.org/)
