@@ -1,16 +1,16 @@
 # Node-RED Meshtastic messages node
 
-This node allows sending and receiving packets to a Meshtastic mesh network thru a device connected via HTTP. It is based on [Meshtastic.js](https://js.meshtastic.org/) library.
+This node allows sending and receiving text messages and packets to a Meshtastic network thru a device connected via HTTP. It is based on [Meshtastic.js](https://js.meshtastic.org/) library.
+
+This tool was designed to be super simple  to use. The user does not have to worry about protobufs or any sort of enconding. Inputs and outputs are either plain text or readable JSON strings.
 
 ## Features
 - Send and receive text messages to/from any device in the mesh
 - Supervise/monitor device status
 - Subscribe and receive all types of events supported by Meshtastic.js (examples: Atak, Position, Range Test, Map Report, Store and Forward, etc...)
 - Send packets to any Meshtastic APP (port num)
-- Plug and Play: no additional servers, no containers, no CLI, no binary files
-- Indirect support to MQTT via uplink/downlink channels
-- No need to worry about Protobuf encoding/decoding. Life should be easy!
-
+- Plug and Play: Node-RED is the only requirement. No additional servers, libraries or external dependencies.
+- Indirect support to MQTT via uplink/downlink channels.
 
 ## Limitations
 - Connect directly to MQTT server: this is not supported by [Meshtastic.js](https://js.meshtastic.org/)
