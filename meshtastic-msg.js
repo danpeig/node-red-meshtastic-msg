@@ -220,6 +220,12 @@ module.exports = function (RED) {
     //Initate a connection
     const id = Math.floor(Math.random() * 1e9);
     node.connection = new HttpConnection(id);
+
+    // Log fine tuning. I still don't see a reason for having this exposed in the graphical interface.
+    // Log levels:
+    //0: silly, 1: trace, 2: debug, 3: info, 4: warn, 5: error, 6: fatal
+   //node.connection.log.settings.minLevel = 7;
+
     try {
       node.connection.connect(connection_settings);
     } catch (e) {
