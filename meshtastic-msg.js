@@ -224,7 +224,7 @@ module.exports = function (RED) {
     // Log fine tuning. I still don't see a reason for having this exposed in the graphical interface.
     // Log levels:
     //0: silly, 1: trace, 2: debug, 3: info, 4: warn, 5: error, 6: fatal
-   //node.connection.log.settings.minLevel = 7;
+    //node.connection.log.settings.minLevel = 7;
 
     try {
       node.connection.connect(connection_settings);
