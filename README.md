@@ -42,6 +42,8 @@ The `experiments_meshtastic.js` illustrates how to use [Meshtastic.js](https://j
 This node was created by [Daniel BP](http://www.danbp.org) and is available under the MIT license.
 
 ## Version history
+- **1.4 (21/09/2024)**
+    - Bumped dependencies
 - **1.3 (30/07/2024)**
     - Added Meshtastic.js log node
 - **1.2 (29/07/2024)**
