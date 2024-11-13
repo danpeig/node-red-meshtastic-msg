@@ -1,6 +1,6 @@
 {
   "name": "@danpeig/node-red-meshtastic-msg",
-  "version": "1.4.3",
+  "version": "1.5.0",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,7 +10,7 @@
   "license": "MIT",
   "description": "This module uses Meshtastic.js library to send and receive packets from a Meshtastic device connected via HTTP.",
   "dependencies": {
-    "@meshtastic/js": "~2.3.7-5",
+    "@meshtastic/js": "^2.5.9-2",
     "import-sync": "2.x"
   },
   "engines": {
@@ -21,12 +21,16 @@
     "url": "https://github.com/danpeig/node-red-meshtastic-msg.git"
   },
   "homepage": "https://github.com/danpeig/node-red-meshtastic-msg",
-  "keywords": [ "node-red", "meshtastic", "lora", "meshtastic.js" ],
+  "keywords": [
+    "node-red",
+    "meshtastic",
+    "lora",
+    "meshtastic.js"
+  ],
   "node-red": {
-	"version": ">=4.x",
+    "version": ">=4.x",
     "nodes": {
       "meshtastic-msg": "meshtastic-msg.js"
     }
   }
 }
-
