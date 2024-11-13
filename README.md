@@ -18,7 +18,7 @@ This node allows sending and receiving packets to a Meshtastic mesh network thru
 - Search for the package `@danpeig/node-red-meshtastic-msg` in the Node-RED community library or NPM.
 
 ## Manual installation
-1. Place the project files inside a folder called `node-red-meshtastic-msg` inside the Node-RED base directory (where the `settings.js` is located)
+1. Place the project files inside a folder called `node-red-meshtastic-msg` inside the Node-RED base directory (where the `settings.js` file is located)
 2. Run `npm install ./node-red-meshtastic-msg`
 3. Edit `meshtastic-msg.js` and change the relative path of the Meshtastic library according to the existing directory structure. Example: `importSync("../node_modules/@meshtastic/js/dist/index.js")`.
 
@@ -29,6 +29,7 @@ Meshtastic.js library has some bugs and can crash the Node-RED server in the fol
 - Connection interrupted during initialization can cause an infinite loop.
 - Sending a packet with `wantResponse` flag set to `true`
 - Depending on the installation method, you may have to edit the file `meshtastic-msg.js` and change the path of the ImportSync to the location where Meshtastic library was installed. Example: `importSync("../../@meshtastic/js/dist/index.js")`.
+- Failing to install the node due missing protobuf packages: Create a file called `.npmrc` with the following content `@jsr:registry=https://npm.jsr.io` and place it in the Node-RED base directory (where the `settings.js` file is located).
 
 ## Examples
 An example flow with the acceptable input message formats can be found in the `examples` sub-directory.
