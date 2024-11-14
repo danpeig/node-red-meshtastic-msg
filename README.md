@@ -15,7 +15,8 @@ This node allows sending and receiving packets to a Meshtastic mesh network thru
 - Connect to a device via Bluetooth or Serial (not implemented yet)
 
 ## Automatic installation (recommended)
-- Search for the package `@danpeig/node-red-meshtastic-msg` in the Node-RED community library or NPM.
+1. Search for the package `@danpeig/node-red-meshtastic-msg` in the Node-RED community library or NPM.
+2. If the installation fails due the inability to download the protobuf library, create a `.npmrc` file in the root folder of Node-RED directory (where `settings.js` is) with the following content: `@jsr:registry=https://npm.jsr.io` and retry the installation.
 
 ## Manual installation
 1. Place the project files inside a folder called `node-red-meshtastic-msg` inside the Node-RED base directory (where the `settings.js` file is located)
