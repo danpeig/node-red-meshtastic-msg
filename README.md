@@ -45,8 +45,8 @@ This node was created by [Daniel BP](http://www.danbp.org) and is available unde
 
 ## Version history
 - **1.5 (13/11/2024)**
-    - Updated `@meshtastic/js` version to 2.5.9-2. This should fix protobuf decoding errors with the latest device firmware.
-    - Tested/validated with the following version of the device firmware: 2.5.11.
+    - Updated `@meshtastic/js` version to **2.5.9-2**. This should fix protobuf decoding errors with the latest device firmware.
+    - Tested/validated with the following version of the device firmware: **2.5.11**.
 - **1.4 (21/09/2024)**
     - Updated dependency versions
 - **1.3 (30/07/2024)**
