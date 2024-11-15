@@ -15,8 +15,8 @@ This node allows sending and receiving packets to a Meshtastic mesh network thru
 - Connect to a device via Bluetooth or Serial (not implemented yet)
 
 ## Automatic installation (recommended)
-1. Search for the package `@danpeig/node-red-meshtastic-msg` in the Node-RED community library or NPM.
-2. If the installation fails due the inability to download the protobuf library, create a `.npmrc` file in the root folder of Node-RED directory (where `settings.js` is) with the following content: `@jsr:registry=https://npm.jsr.io` and retry the installation.
+
+From Node-RED palette manager, search for the package `@danpeig/node-red-meshtastic-msg` in the community library or NPM.
 
 ## Manual installation
 1. Place the project files inside a folder called `node-red-meshtastic-msg` inside the Node-RED base directory (where the `settings.js` file is located)
@@ -25,12 +25,12 @@ This node allows sending and receiving packets to a Meshtastic mesh network thru
 
 To uninstall, run `npm remove @danpeig/node-red-meshtastic-msg` from the same base directory.
 
-## Known issues
+## Known issues and troubleshooting
 Meshtastic.js library has some bugs and can crash the Node-RED server in the following scenarios:
 - Connection interrupted during initialization can cause an infinite loop.
 - Sending a packet with `wantResponse` flag set to `true`
 - Depending on the installation method, you may have to edit the file `meshtastic-msg.js` and change the path of the ImportSync to the location where Meshtastic library was installed. Example: `importSync("../../@meshtastic/js/dist/index.js")`.
-- Failing to install the node due missing protobuf packages: Create a file called `.npmrc` with the following content `@jsr:registry=https://npm.jsr.io` and place it in the Node-RED base directory (where the `settings.js` file is located).
+- Failing to install the node due missing protobuf packages: Create a file called `.npmrc` with the following content `@jsr:registry=https://npm.jsr.io` and place it inside the Node-RED base directory (where the `settings.js` file is located). If the file already exists, append the content as a new line at the end.
 
 ## Examples
 An example flow with the acceptable input message formats can be found in the `examples` sub-directory.
@@ -46,6 +46,7 @@ This node was created by [Daniel BP](http://www.danbp.org) and is available unde
 ## Version history
 - **1.5 (13/11/2024)**
     - Updated `@meshtastic/js` version to 2.5.9-2. This should fix protobuf decoding errors with the latest device firmware.
+    - Tested/validated with the following version of the device firmware: 2.5.11.
 - **1.4 (21/09/2024)**
     - Updated dependency versions
 - **1.3 (30/07/2024)**
