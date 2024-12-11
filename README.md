@@ -18,6 +18,8 @@ This node allows sending and receiving packets to a Meshtastic mesh network thru
 
 From Node-RED palette manager, search for the package `@danpeig/node-red-meshtastic-msg` in the community library or NPM.
 
+Note: If the pallete installer can't find the protobuf library, please see the troubleshooting guide.
+
 ## Manual installation
 1. Place the project files inside a folder called `node-red-meshtastic-msg` inside the Node-RED base directory (where the `settings.js` file is located)
 2. Run `npm install ./node-red-meshtastic-msg`
