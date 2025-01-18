@@ -18,7 +18,7 @@ This node allows sending and receiving packets to a Meshtastic mesh network thru
 
 1. Meshtastic.js uses an external service to provide protobuf sources, this requires one extra configuration step: Create a file called `.npmrc` with the following content `@jsr:registry=https://npm.jsr.io` and place it inside the Node-RED base directory (where the working `settings.js` file is located). If the file already exists, append the content as a new line.
 
-2.From Node-RED palette manager, search for the package `@danpeig/node-red-meshtastic-msg` in the community library or NPM.
+2. From Node-RED palette manager, search for the package `@danpeig/node-red-meshtastic-msg` in the community library or NPM.
 
 
 ## Manual installation
