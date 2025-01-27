@@ -51,6 +51,7 @@ This node was created by [Daniel BP](http://www.danbp.org) and is available unde
     - Updated `@meshtastic/js` version to **2.5.9-3**: this should fix some loop and HTTP connection errors.
 	- Updated README.md based on user frequent questions.
     - Tested/validated with the following version of the device firmware: **2.5.18.9**.
+	- Tested/validated with the following version of Node-RED: 4.0.8 (docker)
 - **1.5 (13/11/2024)**
     - Updated `@meshtastic/js` version to **2.5.9-2**. This should fix protobuf decoding errors with the latest device firmware.
     - Tested/validated with the following version of the device firmware: **2.5.11**.
