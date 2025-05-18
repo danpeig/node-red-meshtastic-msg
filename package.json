@@ -1,6 +1,6 @@
 {
   "name": "@danpeig/node-red-meshtastic-msg",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,7 +10,7 @@
   "license": "MIT",
   "description": "This module uses Meshtastic.js library to send and receive packets from a Meshtastic device connected via HTTP.",
   "dependencies": {
-    "@meshtastic/js": "^2.5.9-3",
+    "@meshtastic/js": "^2.6.0-0",
     "import-sync": "2.x"
   },
   "engines": {

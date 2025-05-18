@@ -30,7 +30,9 @@ To uninstall, run `npm remove @danpeig/node-red-meshtastic-msg` from the same ba
 
 ## Known issues and troubleshooting
 Meshtastic.js library has some bugs and can crash the Node-RED server in the following scenarios:
-- Connection interrupted during initialization can cause an infinite loop.
+- Connection interrupted during initialization can cause an infinite loop that crashes Node-RED:
+	- The initial cause of this problem is a fail during the connection handshake with the device. Do not connect to this device from the mobile phone, it can't handle multiple connections. Ensure your device has sufficient WiFi signal, is connected to a reliable router and has enough power (prefer USB power instead of batteries). I do keep one Meshtastic device (Heltec v3) powered by the grid and close to my router (local network), just to interface with NodeRED. This H3 has been broadcasting and recording messages 24x7 for 5 months without any crash. Lora broadcast is done by another device outside the house.
+	- If the connection fails, Meshtastic.js can go into an infinite loop and crash Node-RED. There is nothing we can do to fix this from the plugin side. Meshtastic.js should fix this bug in future updates.
 - Sending a packet with `wantResponse` flag set to `true`
 - Depending on the installation method, you may have to edit the file `meshtastic-msg.js` and change the path of the ImportSync to the location where Meshtastic library was installed. Example: `importSync("../../@meshtastic/js/dist/index.js")`.
 - Failing to install the node due missing protobuf packages: Create a file called `.npmrc` with the following content `@jsr:registry=https://npm.jsr.io` and place it inside the Node-RED base directory (where the `settings.js` file is located). If the file already exists, append the content as a new line at the end.
@@ -47,6 +49,11 @@ The `experiments_meshtastic.js` illustrates how to use [Meshtastic.js](https://j
 This node was created by [Daniel BP](http://www.danbp.org) and is available under the MIT license.
 
 ## Version history
+- **1.7 (18/05/2025)**
+    - Updated `@meshtastic/js` version to **2.6.0-0**: this should fix some loop and HTTP connection errors.
+	- Updated README.md based on user frequent questions.
+    - Tested/validated with the following version of the device firmware: **2.5.18.9**.
+	- Tested/validated with the following version of Node-RED: 4.0.9 (docker)
 - **1.6 (27/01/2025)**
     - Updated `@meshtastic/js` version to **2.5.9-3**: this should fix some loop and HTTP connection errors.
 	- Updated README.md based on user frequent questions.
