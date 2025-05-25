@@ -52,7 +52,7 @@ This node was created by [Daniel BP](http://www.danbp.org) and is available unde
 - **1.7 (18/05/2025)**
     - Updated `@meshtastic/js` version to **2.6.0-0**: this should fix some loop and HTTP connection errors.
 	- Updated README.md based on user frequent questions.
-    - Tested/validated with the following version of the device firmware: **2.5.18.9**.
+    - Tested/validated with the following versions of the device firmware: **2.5.18** and **2.6.4**.
 	- Tested/validated with the following version of Node-RED: 4.0.9 (docker)
 - **1.6 (27/01/2025)**
     - Updated `@meshtastic/js` version to **2.5.9-3**: this should fix some loop and HTTP connection errors.
