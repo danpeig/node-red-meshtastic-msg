@@ -75,10 +75,17 @@
                         value: "event",
                         options: //Someday I need to populate this automatically 
                             [
+                            { value: "onAtakForwarderPacket", label: "onAtakForwarderPacket"},
+                            { value: "onAtakPacket", label: "onAtakPacket"},
+                            { value: "onAtakPluginPacket", label: "onAtakPluginPacket"},
+                            { value: "onAudioPacket", label: "onAudioPacket"},
+                            { value: "onCannedMessageModulePacket", label: "onCannedMessageModulePacket"},
                             { value: "onChannelPacket", label: "onChannelPacket"},
+                            { value: "onClientNotificationPacket", label: "onClientNotificationPacket"},
                             { value: "onConfigPacket", label: "onConfigPacket"},
                             { value: "onDetectionSensorPacket", label: "onDetectionSensorPacket"},
                             { value: "onDeviceDebugLog", label: "onDeviceDebugLog"},
+                            { value: "onDeviceMetadataPacket", label: "onDeviceMetadataPacket"},
                             { value: "onDeviceStatus", label: "onDeviceStatus"},
                             { value: "onFromRadio", label: "onFromRadio"},
                             { value: "onIpTunnelPacket", label: "onIpTunnelPacket"},
@@ -158,8 +165,9 @@
         category: 'config',
         defaults: {
             fetch_interval: {value:5000, required: true},
+            ip_address: {value:"meshtastic.local",required: true},
             tls: {value:false, required: true},
-            ip_address: {value:"meshtastic.local",required: true}
+            log_level: {value:0, required: true},
         },
         label: function() {
             return this.ip_address;
@@ -169,14 +177,30 @@
                 type:"str",
                 types:["str"]
             });
-            $("#node-config-input-tls").typedInput({
-                type:"bool",
-                types:["bool"]
-            });
             $("#node-config-input-fetch_interval").typedInput({
                 type:"num",
                 types:["num"]
             });
+            $("#node-config-input-tls").typedInput({
+                type:"bool",
+                types:["bool"]
+            });
+            $("#node-config-input-log_level").typedInput({
+                types: [
+                    {
+                        value: 3,
+                        options: [
+                            { value: 0, label: "0: Everything"},
+                            { value: 1, label: "1: Trace"},
+                            { value: 2, label: "2: Debug"},
+                            { value: 3, label: "3: Info"},
+                            { value: 4, label: "4: Warn"},
+                            { value: 5, label: "5: Error"},
+                            { value: 6, label: "6: Fatal"},
+                        ]
+                    }
+                ]
+            })
         },
     });
 </script>
@@ -270,7 +294,11 @@
     </div>
     <div class="form-row">
         <label for="node-config-input-fetch_interval"><i class="fa fa-tag"></i> Fetch interval (ms)</label>
-        <input type="text" id="node-config-input-fetch_interval" placeholder="5000">
+        <input type="text" id="node-config-input-fetch_interval" placeholder="3000">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-log_level"><i class="fa fa-tag"></i> Log level</label>
+        <input type="text" id="node-config-input-log_level" placeholder="1">
     </div>
 </script>
 
@@ -369,5 +397,14 @@ The connection protocol is HTTP. Serial, Bluetooth or MQTT are not supported.
 
 * IP or hostname (string) : IP address or hostname of the Meshtastic device to connect. Examples: *192.168.0.15*, *meshtastic.local*
 * Use TLS (boolean): If true, the connection will be performed using TLS (encrypted). Default is false as most of the devices are not configured for it. 
-* Fetch interval (integer): Interval between polling data from the device. Default is 5000ms.
+* Fetch interval (integer): Interval between polling data from the device. Default is 3000ms.
+* Log level (integer): Default is *3*. Recommended for production is *5*
+  - 0: everything
+  - 1: trace
+  - 2: debug
+  - 3: info
+  - 4: warn
+  - 5: error
+  - 6: fatal
+  
 </script>

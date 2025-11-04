@@ -400,8 +400,9 @@
     {
         "id": "907a3fd0216dbb85",
         "type": "meshtastic-msg-device",
-        "fetch_interval": "2000",
+        "fetch_interval": "3000",
         "tls": "false",
+        "log_level": "1",
         "ip_address": "meshtastic.local"
     }
 ]

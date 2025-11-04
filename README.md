@@ -1,24 +1,22 @@
 # Node-RED Meshtastic messages node
 
-This node allows sending and receiving packets to a Meshtastic mesh network thru a device connected via HTTP. It is based on [Meshtastic.js](https://js.meshtastic.org/) library.
+This node allows sending and receiving packets to a Meshtastic mesh network thru a device connected via HTTP. It is based on [Meshtastic Web](https://github.com/meshtastic/web) library.
 
 ## Features
 - Send and receive text messages to/from any device in the mesh
 - Supervise/monitor device status
-- Subscribe and receive all types of events supported by Meshtastic.js (examples: Atak, Position, Range Test, Map Report, Store and Forward, etc...)
+- Subscribe and receive all types of events supported by [Meshtastic Web](https://github.com/meshtastic/web) (examples: Atak, Position, Range Test, Map Report, Store and Forward, etc...)
 - Send packets to any Meshtastic APP (port num)
 - Plug and Play: no additional servers, no containers, no CLI, no binary files
 - Indirect support to MQTT via uplink/downlink channels
 
 ## Limitations
-- Connect directly to MQTT server: this is not supported by [Meshtastic.js](https://js.meshtastic.org/)
+- Connect directly to MQTT server: this is not supported by [Meshtastic Web](https://github.com/meshtastic/web)
 - Connect to a device via Bluetooth or Serial (not implemented yet)
 
 ## Automatic installation (recommended)
 
-1. Meshtastic.js uses an external service to provide protobuf sources, this requires one extra configuration step: Create a file called `.npmrc` with the following content `@jsr:registry=https://npm.jsr.io` and place it inside the Node-RED base directory (where the working `settings.js` file is located). If the file already exists, append the content as a new line.
-
-2. From Node-RED palette manager, search for the package `@danpeig/node-red-meshtastic-msg` in the community library or NPM.
+From Node-RED palette manager, search for the package `@danpeig/node-red-meshtastic-msg` in the community library or NPM.
 
 
 ## Manual installation
@@ -29,26 +27,31 @@ This node allows sending and receiving packets to a Meshtastic mesh network thru
 To uninstall, run `npm remove @danpeig/node-red-meshtastic-msg` from the same base directory.
 
 ## Known issues and troubleshooting
-Meshtastic.js library has some bugs and can crash the Node-RED server in the following scenarios:
-- Connection interrupted during initialization can cause an infinite loop that crashes Node-RED:
-	- The initial cause of this problem is a fail during the connection handshake with the device. Do not connect to this device from the mobile phone, it can't handle multiple connections. Ensure your device has sufficient WiFi signal, is connected to a reliable router and has enough power (prefer USB power instead of batteries). I do keep one Meshtastic device (Heltec v3) powered by the grid and close to my router (local network), just to interface with NodeRED. This H3 has been broadcasting and recording messages 24x7 for 5 months without any crash. Lora broadcast is done by another device outside the house.
-	- If the connection fails, Meshtastic.js can go into an infinite loop and crash Node-RED. There is nothing we can do to fix this from the plugin side. Meshtastic.js should fix this bug in future updates.
-- Sending a packet with `wantResponse` flag set to `true`
-- Depending on the installation method, you may have to edit the file `meshtastic-msg.js` and change the path of the ImportSync to the location where Meshtastic library was installed. Example: `importSync("../../@meshtastic/js/dist/index.js")`.
-- Failing to install the node due missing protobuf packages: Create a file called `.npmrc` with the following content `@jsr:registry=https://npm.jsr.io` and place it inside the Node-RED base directory (where the `settings.js` file is located). If the file already exists, append the content as a new line at the end.
+- Failed installation: Depending on the installation method, you may have to edit the file `meshtastic-msg.js` and change the path of the ImportSync to the location where Meshtastic library was installed. Example: `importSync("../../@meshtastic/js/dist/index.js")`.
 
 ## Examples
 An example flow with the acceptable input message formats can be found in the `examples` sub-directory.
 
 ![Example flow](resources/flow_example.png "Example flow")
 
-## Bonus
-The `experiments_meshtastic.js` illustrates how to use [Meshtastic.js](https://js.meshtastic.org/) library from plain Javascript (No TypeScript, no React, no compilation, no nothing).
+## Bonus for programmers
+The `experiments_meshtastic.js` illustrates how to use [Meshtastic Web](https://github.com/meshtastic/web) library from plain Javascript (No TypeScript, no React, no compilation, no nothing).
 
 ## License
 This node was created by [Daniel BP](http://www.danbp.org) and is available under the MIT license.
 
 ## Version history
+- **2.0 (02/11/2025)**
+    - Migrated from the deprecated Meshtastic.js to the all new [Meshtastic Web](https://github.com/meshtastic/web) library
+    - [Meshtastic Web](https://github.com/meshtastic/web) library version **2.6.7**
+    - New log level setting in the device connection configuration
+    - Custom `.npmrc`is no longer required
+    - Tested/validated with the following versions of the device firmware: **2.6.11**
+    - Renamed example file
+    - Improved error handling and debug messages
+    - Improved the `experiments_meshtastic.js`
+    - Handlers for the following events: `onAtakPacket, onDeviceMetadataPacket, onCannedMessageModulePacket, onAudioPacket,  onAtakPluginPacket, onAtakForwarderPacket,  onClientNotificationPacket`
+    - Updated the usage instructions
 - **1.7 (18/05/2025)**
     - Updated `@meshtastic/js` version to **2.6.0-0**: this should fix some loop and HTTP connection errors.
 	- Updated README.md based on user frequent questions.
@@ -107,8 +110,7 @@ Receive the status code of the Meshtastic device
 
 ## Receive event node
 This node will watch for the defined event and output the payload received.
-Typically, the output should be a JSON field but there are some events that report numbers or simple strings.
-The events list comes from [Mesthastic.js Event System Class](https://js.meshtastic.org/classes/Utils.EventSystem.html)
+Typically, the output should be a JSON field but there are some events that report numbers or simple strings. Events are defined in the [eventSystem.ts](https://github.com/meshtastic/web/blob/main/packages/core/src/utils/eventSystem.ts) file from Meshtastic Web.
 
 ### Settings
 - `event` (string): select the event to monitor/watch
@@ -150,5 +152,12 @@ The connection protocol is HTTP. Serial, Bluetooth or MQTT are not supported.
 
 ### Options
 * `IP or hostname` (string) : IP address or hostname of the Meshtastic device to connect. Examples: *192.168.0.15*, *meshtastic.local*
-* `Use TLS` (boolean): If true, the connection will be performed using TLS (encrypted). Default is *false* as most of the devices are not configured for it.
 * `Fetch interval` (integer): Interval between polling data from the device. Default is *5000ms*.
+* `Log level` (integer): Default is *3*. Recommended for production is *5*
+  - 0: everything
+  - 1: trace
+  - 2: debug
+  - 3: info
+  - 4: warn
+  - 5: error
+  - 6: fatal
