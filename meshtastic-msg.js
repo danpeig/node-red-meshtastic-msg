@@ -277,7 +277,7 @@ module.exports = function (RED) {
 
     //Connection parameters and failsafe defaults (to prevent crashes after updates)
     let address =
-      config.address === undefined ? "meshtastic.local" : config.address;
+      config.address === undefined ? "192.168.0.1" : config.address;
     let fetchInterval =
       Number(config.fetch_interval) == 0 ? 5000 : Number(config.fetch_interval);
     let logLevel = Number(config.log_level);

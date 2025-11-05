@@ -32,6 +32,8 @@ To uninstall, run `npm remove @danpeig/node-red-meshtastic-msg` from the same ba
 
 - Failed installation: Depending on the installation method, you may have to edit the file `meshtastic-msg.js` and change the path of the ImportSync to the location where Meshtastic library was installed. Example: `importSync("../../@meshtastic/js/dist/index.js")`.
 - Device is connecting and can send messages but not receive: Device can be overloaded with requests, try increasing the fetch interval.
+- Node-RED crashing after an update: This can happen if the update alters the structure of the device connection node. Find the connection node in your `flows.json` file and replace it by the connection node found in `meshtastic-msg_examples.json`.
+- Node-RED crashing when using `meshtastic.local` host. This happens when the hostname fails to resolve. Prefer using direct IP address instead.
 
 ## Examples
 
