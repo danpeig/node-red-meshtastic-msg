@@ -33,7 +33,7 @@ module.exports = function (RED) {
             connection
               ?.sendText(msg.payload, msg.destination, msg.wantAck, msg.channel)
               .then((id) => {
-                console.log("Message sent >> "+msg.payload);
+                console.log("Message sent >> " + msg.payload);
               })
               .catch((e) => {
                 console.log("Failed to send message >> Error: " + e);
@@ -64,11 +64,13 @@ module.exports = function (RED) {
           connection.events.onMessagePacket.subscribe(function (data) {
             //Execute when a message was received
             data.payload = data.data; //Copy the text to the payload field
-            console.log("Message received >> "+data.data);
+            console.log("Message received >> " + data.data);
             node.send(data);
           });
         } catch (e) {
-          console.log("Failed to initialize the message receive listener >> Error: " + e);
+          console.log(
+            "Failed to initialize the message receive listener >> Error: " + e
+          );
         }
       });
     }
@@ -135,7 +137,9 @@ module.exports = function (RED) {
             node.send(output);
           });
         } catch (e) {
-          console.log("Failed to initialize the status listener >> Error: " + e);
+          console.log(
+            "Failed to initialize the status listener >> Error: " + e
+          );
         }
       });
     }
@@ -164,12 +168,12 @@ module.exports = function (RED) {
               node.send(data);
             });
           } catch (e) {
-            console.log("Failed to initialize the event monitor >> Error: " + e);
+            console.log(
+              "Failed to initialize the event monitor >> Error: " + e
+            );
           }
         } else {
-          console.log(
-            "Invalid event monitor >> " + node.eventType
-          );
+          console.log("Invalid event monitor >> " + node.eventType);
         }
       });
     }
@@ -187,7 +191,7 @@ module.exports = function (RED) {
 
     //Check if the device is configured
     if (device) {
-            // Meshtastic node is active
+      // Meshtastic node is active
       connectionReady.once(device.eventReady, (connection) => {
         // Send the message
         node.on("input", function (msg) {
@@ -268,46 +272,43 @@ module.exports = function (RED) {
     let device = this;
 
     //Unique identifier for the physical device
-    device.identifier = Math.random().toString(16).slice(2)
-    device.eventReady = "ready-"+device.identifier //Event for connection ready
+    device.identifier = Math.random().toString(16).slice(2);
+    device.eventReady = "ready-" + device.identifier; //Event for connection ready
 
     //Connection parameters and failsafe defaults (to prevent crashes after updates)
-    let address = (config.address === undefined) ? "meshtastic.local" : config.address
-    let fetchInterval = (Number(config.fetch_interval) == 0) ? 5000 : Number(config.fetch_interval)
-    let logLevel = Number(config.log_level)
-    let connectionMode = (config.connection_mode === undefined) ? "http" : config.connection_mode
-    let tls = (connectionMode == "https") ? true : false
+    let address =
+      config.address === undefined ? "meshtastic.local" : config.address;
+    let fetchInterval =
+      Number(config.fetch_interval) == 0 ? 5000 : Number(config.fetch_interval);
+    let logLevel = Number(config.log_level);
+    let connectionMode =
+      config.connection_mode === undefined ? "http" : config.connection_mode;
+    let tls = connectionMode == "https" ? true : false;
 
     //Initate a connection
     console.log("Connection mode >> " + connectionMode);
-    if (connectionMode == "serial"){
+    if (connectionMode == "serial") {
       try {
-      TransportSerial.create(
-        address
-      ).then((transport) => {
-        transport.fetchInterval = fetchInterval
-        this.connection = new MeshDevice(transport)
-        this.connection.log.settings.minLevel = logLevel
-        connectionReady.emit(device.eventReady, this.connection)
-      });
-    } catch (e) {
-      console.log("Exception in the serial connection >> Error: " + e);
-    }
-    }
-    else{
+        TransportSerial.create(address).then((transport) => {
+          transport.fetchInterval = fetchInterval;
+          this.connection = new MeshDevice(transport);
+          this.connection.log.settings.minLevel = logLevel;
+          connectionReady.emit(device.eventReady, this.connection);
+        });
+      } catch (e) {
+        console.log("Exception in the serial connection >> Error: " + e);
+      }
+    } else {
       try {
-      TransportHTTP.create(
-        address,
-        tls
-      ).then((transport) => {
-        transport.fetchInterval = fetchInterval
-        this.connection = new MeshDevice(transport)
-        this.connection.log.settings.minLevel = logLevel
-        connectionReady.emit(device.eventReady, this.connection)
-      });
-    } catch (e) {
-      console.log("Exception in the http connection >> Error: " + e);
-    }
+        TransportHTTP.create(address, tls).then((transport) => {
+          transport.fetchInterval = fetchInterval;
+          this.connection = new MeshDevice(transport);
+          this.connection.log.settings.minLevel = logLevel;
+          connectionReady.emit(device.eventReady, this.connection);
+        });
+      } catch (e) {
+        console.log("Exception in the http connection >> Error: " + e);
+      }
     }
 
     // Execute when the device is ready
@@ -317,9 +318,9 @@ module.exports = function (RED) {
 
     //Disconnect when done
     device.on("close", function (done) {
-        this.connection.disconnect();
-        done();
-      });
+      this.connection.disconnect();
+      done();
+    });
   }
   RED.nodes.registerType("meshtastic-msg-device", DeviceNode);
 };
