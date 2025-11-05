@@ -10,10 +10,10 @@ Daniel B.P. (www.danbp.org)
 
 
 How to run:
-`
-npm install @mesthastic/transport-http
-node ./fundamentals_meshtastic_web.mjs
-`
+
+  npm install @mesthastic/transport-http
+  node ./fundamentals_meshtastic_web.mjs
+
 
 */
 
