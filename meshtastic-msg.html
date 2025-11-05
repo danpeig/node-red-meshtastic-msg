@@ -165,38 +165,47 @@
         category: 'config',
         defaults: {
             fetch_interval: {value:5000, required: true},
-            ip_address: {value:"meshtastic.local",required: true},
-            tls: {value:false, required: true},
-            log_level: {value:0, required: true},
+            address: {value:"meshtastic.local",required: true},
+            connection_mode: {value:"http", required: true},
+            log_level: {value:"3", required: true},
         },
         label: function() {
-            return this.ip_address;
+            if (this.connection_mode == "serial") return "serial: "+this.address
+            else return this.connection_mode+"://"+this.address
         },
         oneditprepare: function () {
-            $("#node-config-input-ip_address").typedInput({
+            $("#node-config-input-connection_mode").typedInput({
+                types: [
+                    {
+                        value: "http",
+                        options: [
+                            { value: "http", label: "http"},
+                            { value: "https", label: "https (TLS)"},
+                            { value: "serial", label: "serial"}
+                        ]
+                    }
+                ]
+            })
+            $("#node-config-input-address").typedInput({
                 type:"str",
                 types:["str"]
-            });
+            })
             $("#node-config-input-fetch_interval").typedInput({
                 type:"num",
                 types:["num"]
-            });
-            $("#node-config-input-tls").typedInput({
-                type:"bool",
-                types:["bool"]
-            });
+            })
             $("#node-config-input-log_level").typedInput({
                 types: [
                     {
-                        value: 3,
+                        value: "3",
                         options: [
-                            { value: 0, label: "0: Everything"},
-                            { value: 1, label: "1: Trace"},
-                            { value: 2, label: "2: Debug"},
-                            { value: 3, label: "3: Info"},
-                            { value: 4, label: "4: Warn"},
-                            { value: 5, label: "5: Error"},
-                            { value: 6, label: "6: Fatal"},
+                            { value: "0", label: "0: Everything"},
+                            { value: "1", label: "1: Trace"},
+                            { value: "2", label: "2: Debug"},
+                            { value: "3", label: "3: Info"},
+                            { value: "4", label: "4: Warn"},
+                            { value: "5", label: "5: Error"},
+                            { value: "6", label: "6: Fatal"},
                         ]
                     }
                 ]
@@ -285,20 +294,20 @@
 <!-- Meshtastic device configuration node -->
 <script type="text/html" data-template-name="meshtastic-msg-device">
     <div class="form-row">
-        <label for="node-config-input-ip_address"><i class="fa fa-tag"></i> IP or hostname</label>
-        <input type="text" id="node-config-input-ip_address" placeholder="meshtastic.local">
+        <label for="node-config-input-connection_mode"><i class="fa fa-tag"></i> Connection mode</label>
+        <input type="text" id="node-config-input-connection_mode">
     </div>
     <div class="form-row">
-        <label for="node-config-input-tls"><i class="fa fa-tag"></i> Use TLS</label>
-        <input type="text" id="node-config-input-tls">
+        <label for="node-config-input-address"><i class="fa fa-tag"></i> IP, hostname or device</label>
+        <input type="text" id="node-config-input-address" placeholder="meshtastic.local">
     </div>
     <div class="form-row">
         <label for="node-config-input-fetch_interval"><i class="fa fa-tag"></i> Fetch interval (ms)</label>
-        <input type="text" id="node-config-input-fetch_interval" placeholder="3000">
+        <input type="text" id="node-config-input-fetch_interval" placeholder="5000">
     </div>
     <div class="form-row">
         <label for="node-config-input-log_level"><i class="fa fa-tag"></i> Log level</label>
-        <input type="text" id="node-config-input-log_level" placeholder="1">
+        <input type="text" id="node-config-input-log_level" placeholder="3">
     </div>
 </script>
 
@@ -391,14 +400,14 @@ Output the log from [Mesthastic.js](https://js.meshtastic.org) library. Usefull 
 <!-- Meshtastic device configuration node -->
 <script type="text/markdown" data-help-name="meshtastic-msg-device">
 This will setup the connection to the Meshtastic node.
-The connection protocol is HTTP. Serial, Bluetooth or MQTT are not supported.
+The connection protocol can be HTTP or serial. Bluetooth or MQTT are not supported yet.
 
 ### Options
 
-* IP or hostname (string) : IP address or hostname of the Meshtastic device to connect. Examples: *192.168.0.15*, *meshtastic.local*
-* Use TLS (boolean): If true, the connection will be performed using TLS (encrypted). Default is false as most of the devices are not configured for it. 
-* Fetch interval (integer): Interval between polling data from the device. Default is 3000ms.
-* Log level (integer): Default is *3*. Recommended for production is *5*
+* `Connection mode`: Select the type of the connection. Default is *http*.
+* `IP, hostname or device` (string) : IP address, hostname or device of the Meshtastic radio to connect. Examples: *192.168.0.15*, *meshtastic.local*, */dev/ttyUSB0*
+* `Fetch interval` (integer): Interval between polling data from the device. Default is *5000ms*.
+* `Log level` (integer): Default is *3*. Recommended for production is *5*
   - 0: everything
   - 1: trace
   - 2: debug

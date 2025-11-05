@@ -1,14 +1,19 @@
 /*
 
-BONUS! QUICK START FOR PROGRAMMERS
+BONUS! QUICK START FOR DEVELOPERS
 
-This is a quick boilerplate for meshtastic.js input and output.
+This is a quick boilerplate for Meshtastic Web javascritp library input and output.
 It is not used by Node-RED module but could help you to understand how to use the library.
 
 Daniel B.P. (www.danbp.org)
 02/11/2025
 
-Please ensure you had downloaded and installed the @meshtastic/js package according to the instructions in their website.
+
+How to run:
+`
+npm install @mesthastic/transport-http
+node ./fundamentals_meshtastic_web.mjs
+`
 
 */
 
@@ -32,7 +37,7 @@ let deviceStatus = 0;
 connection.events.onDeviceStatus.subscribe(
   function(status){
     deviceStatus = status;
-    console.log(">>>>> STATUS: "+status)
+    console.log(">>>>> STATUS CODE >>>>> "+status)
   }
 )
 

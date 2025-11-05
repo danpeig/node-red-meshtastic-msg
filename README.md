@@ -1,6 +1,6 @@
 # Node-RED Meshtastic messages node
 
-This node allows sending and receiving packets to a Meshtastic mesh network thru a device connected via HTTP. It is based on [Meshtastic Web](https://github.com/meshtastic/web) library.
+This node allows sending and receiving packets to a Meshtastic mesh network thru a device connected via HTTP(S) or serial. It is based on [Meshtastic Web](https://github.com/meshtastic/web) library.
 
 ## Features
 - Send and receive text messages to/from any device in the mesh
@@ -9,17 +9,19 @@ This node allows sending and receiving packets to a Meshtastic mesh network thru
 - Send packets to any Meshtastic APP (port num)
 - Plug and Play: no additional servers, no containers, no CLI, no binary files
 - Indirect support to MQTT via uplink/downlink channels
+- Supported connection modes: HTTP, HTTPS (TLS) and Serial
+- Can connect to multiple Meshtastic devices simultaneously
 
 ## Limitations
 - Connect directly to MQTT server: this is not supported by [Meshtastic Web](https://github.com/meshtastic/web)
-- Connect to a device via Bluetooth or Serial (not implemented yet)
+- Connect to a device via Bluetooth: Not supported by [Meshtastic Web](https://github.com/meshtastic/web)
 
 ## Automatic installation (recommended)
 
 From Node-RED palette manager, search for the package `@danpeig/node-red-meshtastic-msg` in the community library or NPM.
 
-
 ## Manual installation
+
 1. Place the project files inside a folder called `node-red-meshtastic-msg` inside the Node-RED base directory (where the `settings.js` file is located)
 2. Run `npm install ./node-red-meshtastic-msg`
 3. Edit `meshtastic-msg.js` and change the relative path of the Meshtastic library according to the existing directory structure. Example: `importSync("../node_modules/@meshtastic/js/dist/index.js")`.
@@ -27,20 +29,32 @@ From Node-RED palette manager, search for the package `@danpeig/node-red-meshtas
 To uninstall, run `npm remove @danpeig/node-red-meshtastic-msg` from the same base directory.
 
 ## Known issues and troubleshooting
+
 - Failed installation: Depending on the installation method, you may have to edit the file `meshtastic-msg.js` and change the path of the ImportSync to the location where Meshtastic library was installed. Example: `importSync("../../@meshtastic/js/dist/index.js")`.
+- Device is connecting and can send messages but not receive: Device can be overloaded with requests, try increasing the fetch interval.
 
 ## Examples
+
 An example flow with the acceptable input message formats can be found in the `examples` sub-directory.
 
 ![Example flow](resources/flow_example.png "Example flow")
 
-## Bonus for programmers
-The `experiments_meshtastic.js` illustrates how to use [Meshtastic Web](https://github.com/meshtastic/web) library from plain Javascript (No TypeScript, no React, no compilation, no nothing).
+## BONUS for developers - Meshtastic Web fundamentals boilerplate
+
+The `fundamentals_meshtastic_web.mjs` illustrates how to use [Meshtastic Web](https://github.com/meshtastic/web) library from plain NodeJS Javascript (No TypeScript, no React, no compilation, no nothing).
 
 ## License
+
 This node was created by [Daniel BP](http://www.danbp.org) and is available under the MIT license.
 
 ## Version history
+- **3.0 (06/11/2025)**
+    - [Meshtastic Web](https://github.com/meshtastic/web) library version **2.6.7**
+    - Tested/validated with the following versions of the device firmware: **2.6.11**
+    - Added support for serial connections
+    - Fixed connection issues when more than one Meshtastic device is used at the same time
+    - Renamed and updated the Meshtastic Web fundamentals example, `fundamentals_meshtastic_web.mjs` (bonus for developers)
+    - Updated README and instructions
 - **2.0 (02/11/2025)**
     - Migrated from the deprecated Meshtastic.js to the all new [Meshtastic Web](https://github.com/meshtastic/web) library
     - [Meshtastic Web](https://github.com/meshtastic/web) library version **2.6.7**
@@ -51,7 +65,7 @@ This node was created by [Daniel BP](http://www.danbp.org) and is available unde
     - Improved error handling and debug messages
     - Improved the `experiments_meshtastic.js`
     - Handlers for the following events: `onAtakPacket, onDeviceMetadataPacket, onCannedMessageModulePacket, onAudioPacket,  onAtakPluginPacket, onAtakForwarderPacket,  onClientNotificationPacket`
-    - Updated the usage instructions
+    - Updated the instructions
 - **1.7 (18/05/2025)**
     - Updated `@meshtastic/js` version to **2.6.0-0**: this should fix some loop and HTTP connection errors.
 	- Updated README.md based on user frequent questions.
@@ -138,6 +152,7 @@ Input packet can be either in the string format (*msg.payload*) or Uint8Array (*
 [] = optional fields
 
 ## Receive Meshtastic.js log node
+
 Output the log from [Mesthastic.js](https://js.meshtastic.org) library. Usefull for debug purposes and connection status info.
 **Note:** This is not Node-RED log neither the Lora device log.
 
@@ -148,10 +163,11 @@ Output the log from [Mesthastic.js](https://js.meshtastic.org) library. Usefull 
 
 ## Device configuration node
 This will setup the connection to the Meshtastic node.
-The connection protocol is HTTP. Serial, Bluetooth or MQTT are not supported.
+The connection protocol can be HTTP, HTTPS or Serial. Bluetooth or MQTT are not supported yet.
 
 ### Options
-* `IP or hostname` (string) : IP address or hostname of the Meshtastic device to connect. Examples: *192.168.0.15*, *meshtastic.local*
+* `Connection mode`: Select the type of the connection. Default is *http*.
+* `IP, hostname or device` (string) : IP address, hostname or device of the Meshtastic radio to connect. Examples: *192.168.0.15*, *meshtastic.local*, */dev/ttyUSB0*
 * `Fetch interval` (integer): Interval between polling data from the device. Default is *5000ms*.
 * `Log level` (integer): Default is *3*. Recommended for production is *5*
   - 0: everything

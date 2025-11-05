@@ -12,7 +12,7 @@
         "type": "meshtastic-msg-send",
         "z": "97dd70a8218ed916",
         "name": "",
-        "device": "907a3fd0216dbb85",
+        "device": "5d05318ff941d6ab",
         "x": 540,
         "y": 260,
         "wires": []
@@ -22,7 +22,7 @@
         "type": "meshtastic-msg-receive",
         "z": "97dd70a8218ed916",
         "name": "Receive text message",
-        "device": "907a3fd0216dbb85",
+        "device": "5d05318ff941d6ab",
         "x": 180,
         "y": 300,
         "wires": [
@@ -53,7 +53,7 @@
         "type": "meshtastic-msg-status",
         "z": "97dd70a8218ed916",
         "name": "Status",
-        "device": "907a3fd0216dbb85",
+        "device": "5d05318ff941d6ab",
         "x": 110,
         "y": 400,
         "wires": [
@@ -67,7 +67,7 @@
         "type": "meshtastic-msg-receiveevent",
         "z": "97dd70a8218ed916",
         "name": "Receive event",
-        "device": "907a3fd0216dbb85",
+        "device": "5d05318ff941d6ab",
         "event": "onPositionPacket",
         "x": 130,
         "y": 520,
@@ -181,7 +181,7 @@
         "type": "meshtastic-msg-sendpacket",
         "z": "97dd70a8218ed916",
         "name": "",
-        "device": "907a3fd0216dbb85",
+        "device": "5d05318ff941d6ab",
         "x": 530,
         "y": 640,
         "wires": []
@@ -371,7 +371,7 @@
         "type": "meshtastic-msg-log",
         "z": "97dd70a8218ed916",
         "name": "Meshtastic.js log",
-        "device": "907a3fd0216dbb85",
+        "device": "5d05318ff941d6ab",
         "x": 120,
         "y": 780,
         "wires": [
@@ -398,11 +398,19 @@
         "wires": []
     },
     {
-        "id": "907a3fd0216dbb85",
+        "id": "5d05318ff941d6ab",
         "type": "meshtastic-msg-device",
-        "fetch_interval": "3000",
-        "tls": "false",
-        "log_level": "1",
-        "ip_address": "meshtastic.local"
+        "fetch_interval": "5000",
+        "address": "meshtastic.local",
+        "connection_mode": "http",
+        "log_level": "1"
+    },
+    {
+        "id": "c2cb08506221b46e",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@danpeig/node-red-meshtastic-msg": "3.0.0"
+        }
     }
 ]

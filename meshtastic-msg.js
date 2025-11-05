@@ -2,8 +2,10 @@ const importSync = require("import-sync"); //Synchronous module loader
 const EventEmitter = require("node:events"); //Manage events
 const meshtastic_core = importSync("@meshtastic/core"); //This is required because Node-RED does not support ES Modules
 const meshtastic_http = importSync("@meshtastic/transport-http"); //This is required because Node-RED does not support ES Modules
+const meshtastic_serial = importSync("@meshtastic/transport-node-serial"); //This is required because Node-RED does not support ES Modules
 const MeshDevice = meshtastic_core.MeshDevice;
 const TransportHTTP = meshtastic_http.TransportHTTP;
+const TransportSerial = meshtastic_serial.TransportNodeSerial;
 
 //class BasicEmitter extends EventEmitter {}
 //const connectionReady = new BasicEmitter();
@@ -22,7 +24,7 @@ module.exports = function (RED) {
     //Check if the device is configured
     if (device) {
       //Meshtastic node is active
-      connectionReady.once("connected", (connection) => {
+      connectionReady.once(device.eventReady, (connection) => {
         // Send the message
         node.on("input", function (msg) {
           if (typeof msg.payload === "undefined" || msg.payload === null)
@@ -57,7 +59,7 @@ module.exports = function (RED) {
     //Check if the device is configured
     if (device) {
       // Meshtastic node is active
-      connectionReady.once("connected", (connection) => {
+      connectionReady.once(device.eventReady, (connection) => {
         try {
           connection.events.onMessagePacket.subscribe(function (data) {
             //Execute when a message was received
@@ -85,7 +87,7 @@ module.exports = function (RED) {
     //Check if the device is configured
     if (device) {
       // Meshtastic node is active
-      connectionReady.once("connected", (connection) => {
+      connectionReady.once(device.eventReady, (connection) => {
         try {
           connection.events.onDeviceStatus.subscribe(function (data) {
             //Execute when a message was received
@@ -153,7 +155,7 @@ module.exports = function (RED) {
     //Check if the device is configured
     if (device) {
       // Meshtastic node is active
-      connectionReady.once("connected", (connection) => {
+      connectionReady.once(device.eventReady, (connection) => {
         if (connection.events[node.eventType] !== undefined) {
           console.log("Initializing event monitor >> " + node.eventType);
           try {
@@ -186,7 +188,7 @@ module.exports = function (RED) {
     //Check if the device is configured
     if (device) {
             // Meshtastic node is active
-      connectionReady.once("connected", (connection) => {
+      connectionReady.once(device.eventReady, (connection) => {
         // Send the message
         node.on("input", function (msg) {
           if (typeof msg.payload === "undefined" || msg.payload === null)
@@ -245,7 +247,7 @@ module.exports = function (RED) {
     //Check if the device is configured
     if (device) {
       // Meshtastic node is active
-      connectionReady.once("connected", (connection) => {
+      connectionReady.once(device.eventReady, (connection) => {
         try {
           connection.log.attachTransport((data) => {
             data.payload = data[0] + ": " + data[1];
@@ -263,36 +265,58 @@ module.exports = function (RED) {
   //Meshtastic device configuration node
   function DeviceNode(config) {
     RED.nodes.createNode(this, config);
-    var node = this;
+    let device = this;
 
-    //Connection parameters
-    let ip = config.ip_address;
-    let tls = (config.tls == "true") ? true: false;
-    let fetchInterval = Number(config.fetch_interval);
-    let logLevel = Number(config.log_level);
+    //Unique identifier for the physical device
+    device.identifier = Math.random().toString(16).slice(2)
+    device.eventReady = "ready-"+device.identifier //Event for connection ready
+
+    //Connection parameters and failsafe defaults (to prevent crashes after updates)
+    let address = (config.address == undefined) ? "meshtastic.local" : config.address
+    let fetchInterval = (Number(config.fetch_interval) == 0) ? 5000 : Number(config.fetch_interval)
+    let logLevel = Number(config.log_level)
+    let connectionMode = (config.connection_mode == undefined) ? "http" : config.connection_mode
+    let tls = (connectionMode == "https") ? true : false
 
     //Initate a connection
-    try {
-      TransportHTTP.create(
-        ip,
-        tls
+    console.log("Connection mode >> " + connectionMode);
+    if (connectionMode == "serial"){
+      try {
+      TransportSerial.create(
+        address
       ).then((transport) => {
-        transport.fetchInterval = fetchInterval;
-        this.connection = new MeshDevice(transport);
-        this.connection.log.settings.minLevel = logLevel;
-        connectionReady.emit("connected", this.connection);
+        transport.fetchInterval = fetchInterval
+        this.connection = new MeshDevice(transport)
+        this.connection.log.settings.minLevel = logLevel
+        connectionReady.emit(device.eventReady, this.connection)
       });
     } catch (e) {
-      console.log("Exception in the connection >> Error: " + e);
+      console.log("Exception in the serial connection >> Error: " + e);
+    }
+    }
+    else{
+      try {
+      TransportHTTP.create(
+        address,
+        tls
+      ).then((transport) => {
+        transport.fetchInterval = fetchInterval
+        this.connection = new MeshDevice(transport)
+        this.connection.log.settings.minLevel = logLevel
+        connectionReady.emit(device.eventReady, this.connection)
+      });
+    } catch (e) {
+      console.log("Exception in the http connection >> Error: " + e);
+    }
     }
 
-    // Meshtastic node is active
-    connectionReady.on("connected", (connection) => {
+    // Execute when the device is ready
+    connectionReady.once(device.eventReady, (connection) => {
       //Add your code here
     });
 
     //Disconnect when done
-    node.on("close", function (done) {
+    device.on("close", function (done) {
         this.connection.disconnect();
         done();
       });
