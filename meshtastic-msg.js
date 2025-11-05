@@ -272,10 +272,10 @@ module.exports = function (RED) {
     device.eventReady = "ready-"+device.identifier //Event for connection ready
 
     //Connection parameters and failsafe defaults (to prevent crashes after updates)
-    let address = (config.address == undefined) ? "meshtastic.local" : config.address
+    let address = (config.address === undefined) ? "meshtastic.local" : config.address
     let fetchInterval = (Number(config.fetch_interval) == 0) ? 5000 : Number(config.fetch_interval)
     let logLevel = Number(config.log_level)
-    let connectionMode = (config.connection_mode == undefined) ? "http" : config.connection_mode
+    let connectionMode = (config.connection_mode === undefined) ? "http" : config.connection_mode
     let tls = (connectionMode == "https") ? true : false
 
     //Initate a connection
