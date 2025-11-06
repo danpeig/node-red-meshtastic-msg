@@ -1,6 +1,6 @@
 {
   "name": "@danpeig/node-red-meshtastic-msg",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
