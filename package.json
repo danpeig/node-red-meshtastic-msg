@@ -10,12 +10,12 @@
   "license": "MIT",
   "description": "This module uses Meshtastic Web library to send and receive packets from a Meshtastic device connected via HTTP or serial.",
   "dependencies": {
-    "@meshtastic/transport-http": "^0.2.5",
-    "@meshtastic/transport-node-serial": "^0.0.2",
-    "import-sync": "2.x"
+    "@meshtastic/transport-http": "~0.2.5",
+    "@meshtastic/transport-node-serial": "~0.0.2",
+    "import-sync": "^2.0.0"
   },
   "engines": {
-    "node": ">=20.x"
+    "node": ">=18.5"
   },
   "repository": {
     "type": "git",
