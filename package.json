@@ -12,7 +12,6 @@
   "dependencies": {
     "@meshtastic/transport-http": "^0.2.5",
     "@meshtastic/transport-node-serial": "^0.0.2",
-    "cd": "^0.3.3",
     "import-sync": "2.x"
   },
   "engines": {
