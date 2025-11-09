@@ -49,7 +49,7 @@ Response {
 
 ------------------------------------------------------------------------------
 In case of problems, you should expect something like this
-EHOSTUNREACH in the example below means the device cannot be reached from the current server (DNS, firewall, NAT, etc...)
+EHOSTUNREACH in the example below means the device cannot be reached from the current server (DNS, firewall, NAT, etc...).
 
 node:internal/deps/undici/undici:14130
       Error.captureStackTrace(err);
@@ -64,7 +64,7 @@ TypeError: fetch failed
     errno: -113,
     code: 'EHOSTUNREACH',
     syscall: 'connect',
-    address: 'wrong.device.ip',
+    address: '192.168.1.200',
     port: 80
 }}
 
