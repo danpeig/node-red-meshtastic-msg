@@ -33,7 +33,7 @@ To uninstall, run `npm remove @danpeig/node-red-meshtastic-msg` from the same ba
 - Failed installation: Depending on the installation method, you may have to edit the file `meshtastic-msg.js` and change the path of the ImportSync to the location where Meshtastic library was installed. Example: `importSync("../../@meshtastic/js/dist/index.js")`.
 - Device is connecting and can send messages but not receive: Device can be overloaded with requests, try increasing the fetch interval (5s or more)
 - Node-RED crashing after an update: This can happen if the update alters the structure of the device configuration node. Find the connection node in your `flows.json` and delete it. After restarting Node-RED you will be able to create a new device configuration node.
-- Node-RED crashing when using `meshtastic.local` host. This happens when the hostname fails to resolve. Always prefer using direct IP address.
+- Node-RED crashing with the error message `TypeError: fetch failed`: The host name or IP address cannot be reached from Node-RED server this is caused by network connectivity problems. There is a Node test script in this project folder to help diagnosing the problem: [test_connection.mjs](test_connection.mjs).
 - Permission to access serial devices: The linux user running Node-RED must be part of the dialout group `sudo usermod -a -G dialout USER_NAME`
 
 ## Examples
@@ -44,7 +44,7 @@ An example flow with the acceptable input message formats can be found in the `e
 
 ## BONUS for developers - Meshtastic Web fundamentals boilerplate
 
-The `fundamentals_meshtastic_web.mjs` illustrates how to use [Meshtastic Web](https://github.com/meshtastic/web) library from plain NodeJS Javascript (No TypeScript, no React, no compilation, no nothing).
+The [fundamentals_meshtastic_web.mjs](fundamentals_meshtastic_web.mjs) illustrates how to use [Meshtastic Web](https://github.com/meshtastic/web) library from plain NodeJS Javascript (No TypeScript, no React, no compilation, no nothing).
 
 ## License
 
