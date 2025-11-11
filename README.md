@@ -37,6 +37,7 @@ To uninstall, run `npm remove @danpeig/node-red-meshtastic-msg` from the same ba
     - Disble MQTT
     - Disable any other features that can take processor time or RAM: GPS, bluetooth, displays, modules, etc...
     - Connect using the serial port
+- **Device effectively sends the message to the mesh but later it reports it failed to send**: The same problem as the previous issue. Device is not providing a full response when asked for.
 - **Node-RED crashing after an update**: This can happen if the update alters the structure of the device configuration node. Find the connection node in your `flows.json` and delete it. After restarting Node-RED you will be able to create a new device configuration node.
 - **Node-RED error message `TypeError: fetch failed`**: The host name or IP address cannot be reached from Node-RED server. This is caused by network connectivity problems. There is a Node test script in this project folder to help diagnosing the problem: [test_connection.mjs](test_connection.mjs).
 - **Permission to access serial devices**: The linux user running Node-RED must be part of the dialout group `sudo usermod -a -G dialout USER_NAME`
