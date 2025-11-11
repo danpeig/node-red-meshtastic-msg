@@ -24,17 +24,22 @@ From Node-RED palette manager, search for the package `@danpeig/node-red-meshtas
 
 1. Place the project files inside a folder called `node-red-meshtastic-msg` inside the Node-RED base directory (where the `settings.js` file is located)
 2. Run `npm install ./node-red-meshtastic-msg`
-3. Edit `meshtastic-msg.js` and change the relative path of the Meshtastic library according to the existing directory structure. Example: `importSync("../node_modules/@meshtastic/js/dist/index.js")`.
 
 To uninstall, run `npm remove @danpeig/node-red-meshtastic-msg` from the same base directory.
 
 ## Known issues and troubleshooting
 
-- Failed installation: Depending on the installation method, you may have to edit the file `meshtastic-msg.js` and change the path of the ImportSync to the location where Meshtastic library was installed. Example: `importSync("../../@meshtastic/js/dist/index.js")`.
-- Device is connecting and can send messages but not receive: Device can be overloaded with requests, try increasing the fetch interval (5s or more)
-- Node-RED crashing after an update: This can happen if the update alters the structure of the device configuration node. Find the connection node in your `flows.json` and delete it. After restarting Node-RED you will be able to create a new device configuration node.
-- Node-RED crashing with the error message `TypeError: fetch failed`: The host name or IP address cannot be reached from Node-RED server. This is caused by network connectivity problems. There is a Node test script in this project folder to help diagnosing the problem: [test_connection.mjs](test_connection.mjs).
-- Permission to access serial devices: The linux user running Node-RED must be part of the dialout group `sudo usermod -a -G dialout USER_NAME`
+- **Device is connecting and can send messages but not receive**: This is on the device end, probably overload.
+    - Try increasing the fetch interval
+    - Connect directly to the IP address instead of hostname
+    - Double check if the there are no other clients connected to it (phone app, CLI)
+    - Disable TLS
+    - Disble MQTT
+    - Disable any other features that can take processor time or RAM: GPS, bluetooth, displays, modules, etc...
+    - Connect using the serial port
+- **Node-RED crashing after an update**: This can happen if the update alters the structure of the device configuration node. Find the connection node in your `flows.json` and delete it. After restarting Node-RED you will be able to create a new device configuration node.
+- **Node-RED error message `TypeError: fetch failed`**: The host name or IP address cannot be reached from Node-RED server. This is caused by network connectivity problems. There is a Node test script in this project folder to help diagnosing the problem: [test_connection.mjs](test_connection.mjs).
+- **Permission to access serial devices**: The linux user running Node-RED must be part of the dialout group `sudo usermod -a -G dialout USER_NAME`
 
 ## Examples
 
@@ -51,6 +56,13 @@ The [fundamentals_meshtastic_web.mjs](fundamentals_meshtastic_web.mjs) illustrat
 This node was created by [Daniel BP](http://www.danbp.org) and is available under the MIT license.
 
 ## Version history
+- **3.1 (11/11/2025)**
+    - Trace and error messages now use Node-RED implementation (trace messages require special configuration in Node-RED `settings.js`)
+    - Added status indicators for all nodes
+    - Improved the status node with textual output and extra status levels
+    - Updated example: error catch and status node
+    - Bug fix: all errors should be handled by the nodes preventing Node-RED crashes
+    - Improved Mesthastic Web fundamentals boilerplate
 - **3.0 (06/11/2025)**
     - [Meshtastic Web](https://github.com/meshtastic/web) library version **2.6.7**
     - Tested/validated with the following versions of the device firmware: **2.6.11**
@@ -119,11 +131,24 @@ Receive a text message from the mesh connected device
 - `msg.payload` (string): text content of the message 
 
 ## Receive status node
-Receive the status code of the Meshtastic device
-    
+
+Receive the status code and connection status of the Meshtastic device
+
 ### Outputs
-    
-- `msg.payload` (integer): status code of the device
+- `msg` (json): object with all status data
+- `msg.payload`(integer): status code of the device
+- `msg.text` (text): status label
+
+### Status codes
+- 0: idle
+- 1: restarting
+- 2: disconnected
+- 3: connecting
+- 4: reconnecting
+- 5: connected
+- 6: configuring
+- 7: configured
+- 8: error
 
 ## Receive event node
 This node will watch for the defined event and output the payload received.
@@ -156,8 +181,9 @@ Input packet can be either in the string format (*msg.payload*) or Uint8Array (*
 
 ## Receive Meshtastic.js log node
 
-Output the log from [Mesthastic.js](https://js.meshtastic.org) library. Usefull for debug purposes and connection status info.
-**Note:** This is not Node-RED log neither the Lora device log.
+Output the log from [Meshtastic Web](https://github.com/meshtastic/web) library. Usefull for debug purposes and connection status info.
+The log level can be set in the device configuration node.
+**Note:** This is not Node-RED log neither the Lora device log, it the the log of the library that does the bridge between the device and the server.
 
 ### Outputs
 
@@ -173,10 +199,12 @@ The connection protocol can be HTTP, HTTPS or Serial. Bluetooth or MQTT are not 
 * `IP, hostname or device` (string) : IP address, hostname or device of the Meshtastic radio to connect. Examples: *192.168.0.15*, *meshtastic.local*, */dev/ttyUSB0*
 * `Fetch interval` (integer): Interval between polling data from the device. Default is *5000ms*.
 * `Log level` (integer): Default is *3*. Recommended for production is *5*
-  - 0: everything
-  - 1: trace
-  - 2: debug
-  - 3: info
-  - 4: warn
-  - 5: error
-  - 6: fatal
+
+### Log levels
+- 0: everything
+- 1: trace
+- 2: debug
+- 3: info
+- 4: warn
+- 5: error
+- 6: fatal

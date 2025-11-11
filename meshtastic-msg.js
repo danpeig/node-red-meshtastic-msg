@@ -7,9 +7,7 @@ const MeshDevice = meshtastic_core.MeshDevice;
 const TransportHTTP = meshtastic_http.TransportHTTP;
 const TransportSerial = meshtastic_serial.TransportNodeSerial;
 
-//class BasicEmitter extends EventEmitter {}
-//const connectionReady = new BasicEmitter();
-const connectionReady = new EventEmitter();
+const connectionReady = new EventEmitter(); //Notify all nodes of a successful connection
 
 module.exports = function (RED) {
   //-----------------------------------------------------------------------------
@@ -21,10 +19,14 @@ module.exports = function (RED) {
     // Retrieve the Meshtastic device node
     let device = RED.nodes.getNode(config.device);
 
+    //Initial status
+    node.status({ fill: "grey", shape: "dot", text: "inactive" });
+
     //Check if the device is configured
     if (device) {
       //Meshtastic node is active
       connectionReady.once(device.eventReady, (connection) => {
+        node.status({ fill: "green", shape: "dot", text: "active" });
         // Send the message
         node.on("input", function (msg) {
           if (typeof msg.payload === "undefined" || msg.payload === null)
@@ -33,13 +35,18 @@ module.exports = function (RED) {
             connection
               ?.sendText(msg.payload, msg.destination, msg.wantAck, msg.channel)
               .then((id) => {
-                console.log("Message sent >> " + msg.payload);
+                node.status({ fill: "green", shape: "dot", text: "active" });
+                node.trace("Message sent: " + msg.payload);
               })
               .catch((e) => {
-                console.log("Failed to send message >> Error: " + e);
+                node.status({ fill: "red", shape: "dot", text: "error" });
+                node.error("Failed to send message");
+                node.error(e);
               });
           } catch (e) {
-            console.log("Exception in the text message sender >> Error: " + e);
+            node.status({ fill: "red", shape: "dot", text: "error" });
+            node.error("Exception in the text message sender");
+            node.error(e);
           }
         });
       });
@@ -56,21 +63,26 @@ module.exports = function (RED) {
     // Retrieve the Meshtastic device node
     let device = RED.nodes.getNode(config.device);
 
+    //Initial status
+    node.status({ fill: "grey", shape: "dot", text: "inactive" });
+
     //Check if the device is configured
     if (device) {
       // Meshtastic node is active
       connectionReady.once(device.eventReady, (connection) => {
+        node.status({ fill: "green", shape: "dot", text: "active" });
         try {
           connection.events.onMessagePacket.subscribe(function (data) {
             //Execute when a message was received
             data.payload = data.data; //Copy the text to the payload field
-            console.log("Message received >> " + data.data);
+            node.trace("Message received >> " + data.data);
+            node.status({ fill: "green", shape: "dot", text: "active" });
             node.send(data);
           });
         } catch (e) {
-          console.log(
-            "Failed to initialize the message receive listener >> Error: " + e
-          );
+          node.status({ fill: "red", shape: "dot", text: "error" });
+          node.error("Failed to initialize the message receive listener");
+          node.error(e);
         }
       });
     }
@@ -86,60 +98,103 @@ module.exports = function (RED) {
     // Retrieve the Meshtastic device node
     let device = RED.nodes.getNode(config.device);
 
+    //Node output
+    let output = {};
+
+    //Initial status
+    output.payload = 0;
+    output.text = "idle";
+    node.send(output);
+    node.status({ fill: "grey", shape: "dot", text: "offline" });
+
     //Check if the device is configured
     if (device) {
       // Meshtastic node is active
       connectionReady.once(device.eventReady, (connection) => {
         try {
+
+          //Connected status
+          output.payload = 5;
+          output.text = "connected";
+          node.send(output);
+          node.status({ fill: "green", shape: "dot", text: "connected" });
+
           connection.events.onDeviceStatus.subscribe(function (data) {
             //Execute when a message was received
             //Nice visualization of the status
+            output.payload = data;
             switch (data) {
               case 1:
-                node.status({ fill: "red", shape: "dot", text: "restarting" });
-                break;
-              case 3:
                 node.status({
                   fill: "yellow",
-                  shape: "dot",
+                  shape: "ring",
+                  text: "restarting",
+                });
+                break;
+              case 2:
+                output.text = "disconnected";
+                node.status({
+                  fill: "red",
+                  shape: "ring",
+                  text: "disconnected",
+                });
+              case 3:
+                output.text = "connecting";
+                node.status({
+                  fill: "yellow",
+                  shape: "ring",
                   text: "connecting",
                 });
                 break;
               case 4:
+                output.text = "reconnecting";
                 node.status({
                   fill: "yellow",
-                  shape: "dot",
+                  shape: "ring",
                   text: "reconnecting",
                 });
                 break;
               case 5:
+                output.text = "connected";
                 node.status({ fill: "green", shape: "dot", text: "connected" });
                 break;
               case 6:
+                output.text = "configuring";
                 node.status({
                   fill: "blue",
-                  shape: "dot",
+                  shape: "ring",
                   text: "configuring",
                 });
                 break;
               case 7:
+                output.text = "configured";
                 node.status({
-                  fill: "green",
+                  fill: "blue",
                   shape: "dot",
                   text: "configured",
                 });
                 break;
+              case 8:
+                output.text = "error";
+                node.status({
+                  fill: "red",
+                  shape: "dot",
+                  text: "error",
+                });
+                break;
               default:
+                output.text = "unknown";
                 node.status({ fill: "grey", shape: "dot", text: "unknown" });
             }
-            let output = {};
-            output.payload = data;
             node.send(output);
           });
         } catch (e) {
-          console.log(
-            "Failed to initialize the status listener >> Error: " + e
-          );
+          output.payload = 8;
+          output.text = "error";
+          node.send(output);
+          node.status({ fill: "red", shape: "dot", text: "error" });
+          node.error("Failed to initialize the status listener");
+          node.error(e);
         }
       });
     }
@@ -156,24 +211,30 @@ module.exports = function (RED) {
     // Retrieve the Meshtastic device node
     let device = RED.nodes.getNode(config.device);
 
+    //Initial status
+    node.status({ fill: "grey", shape: "dot", text: "inactive" });
+
     //Check if the device is configured
     if (device) {
       // Meshtastic node is active
       connectionReady.once(device.eventReady, (connection) => {
         if (connection.events[node.eventType] !== undefined) {
-          console.log("Initializing event monitor >> " + node.eventType);
+          node.trace("Initializing event monitor: " + node.eventType);
+          node.status({ fill: "green", shape: "dot", text: "active" });
           try {
             connection.events[node.eventType].subscribe(function (data) {
+              node.status({ fill: "green", shape: "dot", text: "active" });
               //Forward the data directly to the output
               node.send(data);
             });
           } catch (e) {
-            console.log(
-              "Failed to initialize the event monitor >> Error: " + e
-            );
+            node.status({ fill: "red", shape: "dot", text: "error" });
+            node.error("Failed to initialize the event monitor");
+            node.error(e);
           }
         } else {
-          console.log("Invalid event monitor >> " + node.eventType);
+          node.status({ fill: "red", shape: "dot", text: "error" });
+          node.error("Invalid event to monitor: " + node.eventType);
         }
       });
     }
@@ -189,10 +250,14 @@ module.exports = function (RED) {
     // Retrieve the Meshtastic device node
     let device = RED.nodes.getNode(config.device);
 
+    //Initial status
+    node.status({ fill: "grey", shape: "dot", text: "inactive" });
+
     //Check if the device is configured
     if (device) {
       // Meshtastic node is active
       connectionReady.once(device.eventReady, (connection) => {
+        node.status({ fill: "green", shape: "dot", text: "active" });
         // Send the message
         node.on("input", function (msg) {
           if (typeof msg.payload === "undefined" || msg.payload === null)
@@ -225,13 +290,18 @@ module.exports = function (RED) {
                 msg.emoji
               )
               .then((id) => {
-                console.log("Packet sent >> ID: " + id);
+                node.status({ fill: "green", shape: "dot", text: "active" });
+                node.trace("Packet sent ID: " + id);
               })
               .catch((e) => {
-                console.log("Failed to send packet >> Error: " + e);
+                node.status({ fill: "red", shape: "dot", text: "error" });
+                node.error("Failed to send packet");
+                node.error(e);
               });
           } catch (e) {
-            console.log("Exception sending packet >> Error: " + e);
+            node.status({ fill: "red", shape: "dot", text: "error" });
+            node.error("Exception sending packet");
+            node.error(e);
           }
         });
       });
@@ -248,17 +318,24 @@ module.exports = function (RED) {
     // Retrieve the Meshtastic device node
     let device = RED.nodes.getNode(config.device);
 
+    //Initial status
+    node.status({ fill: "grey", shape: "dot", text: "inactive" });
+
     //Check if the device is configured
     if (device) {
       // Meshtastic node is active
       connectionReady.once(device.eventReady, (connection) => {
+        node.status({ fill: "green", shape: "dot", text: "active" });
         try {
           connection.log.attachTransport((data) => {
+            node.status({ fill: "green", shape: "dot", text: "active" });
             data.payload = data[0] + ": " + data[1];
             node.send(data);
           });
         } catch (e) {
-          console.log("Exception in the log event monitor >> Error: " + e);
+          node.status({ fill: "red", shape: "dot", text: "error" });
+          node.error("Exception in the log event monitor");
+          node.error(e);
         }
       });
     }
@@ -269,15 +346,15 @@ module.exports = function (RED) {
   //Meshtastic device configuration node
   function DeviceNode(config) {
     RED.nodes.createNode(this, config);
-    let device = this;
+    let node = this;
 
     //Unique identifier for the physical device
-    device.identifier = Math.random().toString(16).slice(2);
-    device.eventReady = "ready-" + device.identifier; //Event for connection ready
+    node.identifier = Math.random().toString(16).slice(2);
+    node.eventReady = "ready-" + node.identifier; //Event for connection ready
 
     //Connection parameters and failsafe defaults (to prevent crashes after updates)
     let address =
-      config.address === undefined ? "192.168.0.1" : config.address;
+      config.address === undefined ? "meshtastic.local" : config.address;
     let fetchInterval =
       Number(config.fetch_interval) == 0 ? 5000 : Number(config.fetch_interval);
     let logLevel = Number(config.log_level);
@@ -286,39 +363,46 @@ module.exports = function (RED) {
     let tls = connectionMode == "https" ? true : false;
 
     //Initate a connection
-    console.log("Connection mode >> " + connectionMode);
+    this.trace("Connection mode >> " + connectionMode);
     if (connectionMode == "serial") {
-      try {
-        TransportSerial.create(address).then((transport) => {
+      TransportSerial.create(address).then(
+        (transport) => {
           transport.fetchInterval = fetchInterval;
-          this.connection = new MeshDevice(transport);
-          this.connection.log.settings.minLevel = logLevel;
-          connectionReady.emit(device.eventReady, this.connection);
-        });
-      } catch (e) {
-        console.log("Exception in the serial connection >> Error: " + e);
-      }
+          node.connection = new MeshDevice(transport);
+          node.connection.log.settings.minLevel = logLevel;
+          connectionReady.emit(node.eventReady, node.connection);
+          node.trace("Device connected by serial port: " + address);
+        },
+        (e) => {
+          node.error("Exception in the serial connection");
+          node.error(e);
+        }
+      );
     } else {
-      try {
-        TransportHTTP.create(address, tls).then((transport) => {
+      TransportHTTP.create(address, tls).then(
+        (transport) => {
           transport.fetchInterval = fetchInterval;
-          this.connection = new MeshDevice(transport);
-          this.connection.log.settings.minLevel = logLevel;
-          connectionReady.emit(device.eventReady, this.connection);
-        });
-      } catch (e) {
-        console.log("Exception in the http connection >> Error: " + e);
-      }
+          node.connection = new MeshDevice(transport);
+          node.connection.log.settings.minLevel = logLevel;
+          connectionReady.emit(node.eventReady, node.connection);
+          node.trace("Device connected by http/https: " + address);
+        },
+        (e) => {
+          node.error("Exception in the http/https connection");
+          node.error(e);
+        }
+      );
     }
 
     // Execute when the device is ready
-    connectionReady.once(device.eventReady, (connection) => {
+    connectionReady.once(node.eventReady, (connection) => {
       //Add your code here
     });
 
     //Disconnect when done
-    device.on("close", function (done) {
-      this.connection.disconnect();
+    node.on("close", function (done) {
+      node.trace("Device disconnected: " + address);
+      node.connection.disconnect();
       done();
     });
   }

@@ -14,7 +14,7 @@
         "name": "",
         "device": "5d05318ff941d6ab",
         "x": 540,
-        "y": 260,
+        "y": 220,
         "wires": []
     },
     {
@@ -40,8 +40,8 @@
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
+        "complete": "true",
+        "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
         "x": 560,
@@ -398,19 +398,61 @@
         "wires": []
     },
     {
+        "id": "4ec5c4973b3974d4",
+        "type": "catch",
+        "z": "97dd70a8218ed916",
+        "name": "",
+        "scope": null,
+        "uncaught": false,
+        "x": 100,
+        "y": 900,
+        "wires": [
+            [
+                "bab9b74e3c9a44e5"
+            ]
+        ]
+    },
+    {
+        "id": "bab9b74e3c9a44e5",
+        "type": "debug",
+        "z": "97dd70a8218ed916",
+        "name": "system log",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 510,
+        "y": 900,
+        "wires": []
+    },
+    {
+        "id": "a836a7040e96d5a5",
+        "type": "comment",
+        "z": "97dd70a8218ed916",
+        "name": "Node-RED system log",
+        "info": "Output the Node-RED log. Good for connection troubleshooting.",
+        "x": 120,
+        "y": 840,
+        "wires": []
+    },
+    {
         "id": "5d05318ff941d6ab",
         "type": "meshtastic-msg-device",
         "fetch_interval": "5000",
-        "address": "192.168.0.1",
+        "address": "meshtastic.local",
         "connection_mode": "http",
         "log_level": "1"
     },
     {
-        "id": "c2cb08506221b46e",
+        "id": "f95eb5d45d103a0f",
         "type": "global-config",
         "env": [],
         "modules": {
-            "@danpeig/node-red-meshtastic-msg": "3.0.0"
+            "@danpeig/node-red-meshtastic-msg": "3.1.0"
         }
     }
 ]

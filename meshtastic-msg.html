@@ -182,7 +182,7 @@
     category: "config",
     defaults: {
       fetch_interval: { value: 5000, required: true },
-      address: { value: "192.168.0.1", required: true },
+      address: { value: "meshtastic.local", required: true },
       connection_mode: { value: "http", required: true },
       log_level: { value: "3", required: true },
     },
@@ -335,7 +335,7 @@
     <input
       type="text"
       id="node-config-input-address"
-      placeholder="192.168.0.1"
+      placeholder="meshtastic.local"
     />
   </div>
   <div class="form-row">
@@ -359,102 +359,117 @@
 <!------------------------------------------------------------------------------------------->
 <!-- Send text message node -->
 <script type="text/markdown" data-help-name="meshtastic-msg-send">
-  Send a text message to the mesh connected device
+Send a text message to the mesh connected device
 
-  ### Input
+### Input
 
-  : msg.payload (string) : the text message to be sent to the network
-  : _msg.channel_ (integer): the Meshtastic channel number. Defaults to 0 (primary)
-  : _msg.destination_ (integer): the destination node number, _broadcast_ or _self_. Defaults to _broadcast_
-  : _msg.wantAck_ (boolean): if the receiving devices should acknowldege receipt. Defaults to _true_
+: msg.payload (string) : the text message to be sent to the network
+: _msg.channel_ (integer): the Meshtastic channel number. Defaults to 0 (primary)
+: _msg.destination_ (integer): the destination node number, _broadcast_ or _self_. Defaults to _broadcast_
+: _msg.wantAck_ (boolean): if the receiving devices should acknowldege receipt. Defaults to _true_
 </script>
 
 <!------------------------------------------------------------------------------------------->
 <!-- Receive text message node -->
 <script type="text/markdown" data-help-name="meshtastic-msg-receive">
-  Receive a text message from the mesh connected device
+Receive a text message from the mesh connected device
 
-  ### Outputs
+### Outputs
 
-  : msg (json) : object with all package properties
-  : msg.payload (string): text content of the message
+: msg (json) : object with all package properties
+: msg.payload (string): text content of the message
 </script>
 
 <!------------------------------------------------------------------------------------------->
 <!-- Receive status node -->
 <script type="text/markdown" data-help-name="meshtastic-msg-status">
-  Receive the status code of the Meshtastic device
+Receive the status code of the Meshtastic device
 
-  ### Outputs
+### Outputs
 
-  : msg.payload (integer): status code of the device
+: msg (json) : object with all status data
+: msg.payload (integer): status code of the device
+: msg.text (text): status label
+
+### Status codes
+- 0: idle
+- 1: restarting
+- 2: disconnected
+- 3: connecting
+- 4: reconnecting
+- 5: connected
+- 6: configuring
+- 7: configured
+- 8: error
 </script>
 
 <!------------------------------------------------------------------------------------------->
 <!-- Receive generic event node -->
 <script type="text/markdown" data-help-name="meshtastic-msg-receiveevent">
-  This node will watch for the defined event and output the payload received.
-  Typically, the output should be a JSON field but there are some events that report numbers or simple strings.
-  The events list comes from [Mesthastic.js Event System Class](https://js.meshtastic.org/classes/Utils.EventSystem.html)
+This node will watch for the defined event and output the payload received.
+Typically, the output should be a JSON field but there are some events that report numbers or simple strings.
+The events list comes from [Mesthastic.js Event System Class](https://js.meshtastic.org/classes/Utils.EventSystem.html)
 
-  ### Settings
+### Settings
 
-  : event (string): select the event to monitor/watch
+: event (string): select the event to monitor/watch
 
-  ### Outputs
+### Outputs
 
-  : msg (json): data from the event
+: msg (json): data from the event
 </script>
 
 <!------------------------------------------------------------------------------------------->
 <!-- Send generic packet node -->
 <script type="text/markdown" data-help-name="meshtastic-msg-sendpacket">
-  Send a packet to the mesh connected device.
-  Input packet can be either in the string format (_msg.payload_) or Uint8Array (_msg.byteData_) format.
+Send a packet to the mesh connected device.
+Input packet can be either in the string format (_msg.payload_) or Uint8Array (_msg.byteData_) format.
 
-  ### Input
+### Input
 
-  : msgpayload (string): Will be converted to Uint8Array and used if _byteData_ field is not set
-  : _msg.byteData_ (json) : Data properly encoded as Uint8Array. If set, will be used instead of _payload_. Example [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33]
-  : _msg.portNum_ (integer): Application number. Defaults to 1 (text messsage app)
-  : _msg.destination_ (integer string): Destination node number, _broadcast_ or _self_. Detaults to _broadcast_
-  : _msg.channel_ (integer): Channel number, defaults to _0_ (primary)
-  : _msg.wantAck_ (boolean): Confirmation, defaults to _true_
-  : _msg.wantResponse_ (boolean): Defaults to _false_
-  : _msg.echoResponse_ (boolean): Defaults to _false_
-  : _msg.replyId_ (integer): Defaults to _null_
-  : _msg.emoji_ (integer): Defaults to _null_
+: msgpayload (string): Will be converted to Uint8Array and used if _byteData_ field is not set
+: _msg.byteData_ (json) : Data properly encoded as Uint8Array. If set, will be used instead of _payload_. Example [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33]
+: _msg.portNum_ (integer): Application number. Defaults to 1 (text messsage app)
+: _msg.destination_ (integer string): Destination node number, _broadcast_ or _self_. Detaults to _broadcast_
+: _msg.channel_ (integer): Channel number, defaults to _0_ (primary)
+: _msg.wantAck_ (boolean): Confirmation, defaults to _true_
+: _msg.wantResponse_ (boolean): Defaults to _false_
+: _msg.echoResponse_ (boolean): Defaults to _false_
+: _msg.replyId_ (integer): Defaults to _null_
+: _msg.emoji_ (integer): Defaults to _null_
 </script>
 
 <!------------------------------------------------------------------------------------------->
 <!-- Receive Meshtastic.js log node -->
 <script type="text/markdown" data-help-name="meshtastic-msg-log">
-  Output the log from [Mesthastic.js](https://js.meshtastic.org) library. Usefull for debug purposes and connection status info.
-  **Note:** This is not Node-RED log neither the Lora device log.
+Output the log from [Mesthastic.js](https://js.meshtastic.org) library. Usefull for debug purposes and connection status info.
+**Note:** This is not Node-RED log neither the Lora device log.
 
-  ### Outputs
+### Outputs
 
-  : msg (json) : object with all log message properties
-  : msg.payload (string): text content of the log entry (fields \[0\] and \[1\] concatenated)
+: msg (json) : object with all log message properties
+: msg.payload (string): text content of the log entry (fields \[0\] and \[1\] concatenated)
 </script>
 
 <!------------------------------------------------------------------------------------------->
 <!-- Meshtastic device configuration node -->
 <script type="text/markdown" data-help-name="meshtastic-msg-device">
-  This will setup the connection to the Meshtastic node.
-  The connection protocol can be HTTP or serial. Bluetooth or MQTT are not supported yet.
+This will setup the connection to the Meshtastic node.
+The connection protocol can be HTTP or serial. Bluetooth or MQTT are not supported yet.
 
-  ### Options
+### Options
 
-  - `Connection mode`: Select the type of the connection. Default is _http_.
-  - `IP, hostname or device` (string) : IP address, hostname or device of the Meshtastic radio to connect. Examples: _192.168.0.15_, _meshtastic.local_, _/dev/ttyUSB0_
-  - `Fetch interval` (integer): Interval between polling data from the device. Default is _5000ms_.
-  - `Log level` (integer): Default is _3_. Recommended for production is _5_
-    - 0: everything
-    - 1: trace
-    - 2: debug
-    - 3: info
-    - 4: warn
-    - 5: error
-    - 6: fatal
+- `Connection mode`: Select the type of the connection. Default is _http_.
+- `IP, hostname or device` (string) : IP address, hostname or device of the Meshtastic radio to connect. Examples: _192.168.0.15_, _meshtastic.local_, _/dev/ttyUSB0_
+- `Fetch interval` (integer): Interval between polling data from the device. Default is _5000ms_.
+- `Log level` (integer): Default is _3_. Recommended for production is _5_
+
+### Log levels
+- 0: everything
+- 1: trace
+- 2: debug
+- 3: info
+- 4: warn
+- 5: error
+- 6: fatal
 </script>
