@@ -59,7 +59,7 @@ This node was created by [Daniel BP](http://www.danbp.org) and is available unde
 
 ## Version history
 - **3.2 (14/11/2025)**
-    - New "dead status" to prevent Node-RED from crashing due unhandled bugs and failiures of Meshtastic Web stack and underlying libraries.
+    - New "dead status" to prevent Node-RED from crashing due to unhandled bugs and failures in the Meshtastic Web stack and its underlying libraries.
 - **3.1 (11/11/2025)**
     - Trace and error messages now use Node-RED implementation (trace messages require special configuration in Node-RED `settings.js`)
     - Added status indicators for all nodes
