@@ -8,6 +8,7 @@ const TransportHTTP = meshtastic_http.TransportHTTP;
 const TransportSerial = meshtastic_serial.TransportNodeSerial;
 
 const connectionReady = new EventEmitter(); //Notify all nodes of a successful connection
+let systemCrash = false; //Prevents nodes from working in case something goes seriously wrong
 
 module.exports = function (RED) {
   //-----------------------------------------------------------------------------
@@ -32,6 +33,7 @@ module.exports = function (RED) {
           if (typeof msg.payload === "undefined" || msg.payload === null)
             msg.payload = "msg.payload not set"; //Educational
           try {
+            if (systemCrash) throw new Error("Node killed due system crash");
             connection
               ?.sendText(msg.payload, msg.destination, msg.wantAck, msg.channel)
               .then((id) => {
@@ -51,6 +53,11 @@ module.exports = function (RED) {
         });
       });
     }
+
+    //Execute when there is no salvation
+    connectionReady.once(device.eventCrash, () =>
+      node.status({ fill: "red", shape: "dot", text: "dead" })
+    );
   }
   RED.nodes.registerType("meshtastic-msg-send", SendText);
 
@@ -72,6 +79,7 @@ module.exports = function (RED) {
       connectionReady.once(device.eventReady, (connection) => {
         node.status({ fill: "green", shape: "dot", text: "active" });
         try {
+          if (systemCrash) throw new Error("Node killed due system crash");
           connection.events.onMessagePacket.subscribe(function (data) {
             //Execute when a message was received
             data.payload = data.data; //Copy the text to the payload field
@@ -86,6 +94,11 @@ module.exports = function (RED) {
         }
       });
     }
+
+    //Execute when there is no salvation
+    connectionReady.once(device.eventCrash, () =>
+      node.status({ fill: "red", shape: "dot", text: "dead" })
+    );
   }
   RED.nodes.registerType("meshtastic-msg-receive", ReceiveText);
 
@@ -112,6 +125,7 @@ module.exports = function (RED) {
       // Meshtastic node is active
       connectionReady.once(device.eventReady, (connection) => {
         try {
+          if (systemCrash) throw new Error("Node killed due system crash");
 
           //Connected status
           output.payload = 5;
@@ -198,6 +212,11 @@ module.exports = function (RED) {
         }
       });
     }
+
+    //Execute when there is no salvation
+    connectionReady.once(device.eventCrash, () =>
+      node.status({ fill: "red", shape: "dot", text: "dead" })
+    );
   }
   RED.nodes.registerType("meshtastic-msg-status", DeviceStatus);
 
@@ -222,6 +241,7 @@ module.exports = function (RED) {
           node.trace("Initializing event monitor: " + node.eventType);
           node.status({ fill: "green", shape: "dot", text: "active" });
           try {
+            if (systemCrash) throw new Error("Node killed due system crash");
             connection.events[node.eventType].subscribe(function (data) {
               node.status({ fill: "green", shape: "dot", text: "active" });
               //Forward the data directly to the output
@@ -238,6 +258,11 @@ module.exports = function (RED) {
         }
       });
     }
+
+    //Execute when there is no salvation
+    connectionReady.once(device.eventCrash, () =>
+      node.status({ fill: "red", shape: "dot", text: "dead" })
+    );
   }
   RED.nodes.registerType("meshtastic-msg-receiveevent", ReceiveEvent);
 
@@ -277,6 +302,7 @@ module.exports = function (RED) {
           )
             msg.wantResponse = false; //This response is crashing the script...
           try {
+            if (systemCrash) throw new Error("Node killed due system crash");
             connection
               ?.sendPacket(
                 msg.byteData,
@@ -306,6 +332,11 @@ module.exports = function (RED) {
         });
       });
     }
+
+    //Execute when there is no salvation
+    connectionReady.once(device.eventCrash, () =>
+      node.status({ fill: "red", shape: "dot", text: "dead" })
+    );
   }
   RED.nodes.registerType("meshtastic-msg-sendpacket", SendPacket);
 
@@ -327,6 +358,7 @@ module.exports = function (RED) {
       connectionReady.once(device.eventReady, (connection) => {
         node.status({ fill: "green", shape: "dot", text: "active" });
         try {
+          if (systemCrash) throw new Error("Node killed due system crash");
           connection.log.attachTransport((data) => {
             node.status({ fill: "green", shape: "dot", text: "active" });
             data.payload = data[0] + ": " + data[1];
@@ -339,6 +371,11 @@ module.exports = function (RED) {
         }
       });
     }
+
+    //Execute when there is no salvation
+    connectionReady.once(device.eventCrash, () =>
+      node.status({ fill: "red", shape: "dot", text: "dead" })
+    );
   }
   RED.nodes.registerType("meshtastic-msg-log", ReceiveLog);
 
@@ -348,63 +385,90 @@ module.exports = function (RED) {
     RED.nodes.createNode(this, config);
     let node = this;
 
+    //Reset the crash status during startup
+    systemCrash = false;
+
     //Unique identifier for the physical device
     node.identifier = Math.random().toString(16).slice(2);
     node.eventReady = "ready-" + node.identifier; //Event for connection ready
+    node.eventCrash = "crash-" + node.identifier; //Event for critical error
 
     //Connection parameters and failsafe defaults (to prevent crashes after updates)
-    let address =
+    node.address =
       config.address === undefined ? "meshtastic.local" : config.address;
-    let fetchInterval =
+    node.fetchInterval =
       Number(config.fetch_interval) == 0 ? 5000 : Number(config.fetch_interval);
-    let logLevel = Number(config.log_level);
-    let connectionMode =
+    node.logLevel = Number(config.log_level);
+    node.connectionMode =
       config.connection_mode === undefined ? "http" : config.connection_mode;
-    let tls = connectionMode == "https" ? true : false;
+    node.tls = node.connectionMode == "https" ? true : false;
 
-    //Initate a connection
-    this.trace("Connection mode >> " + connectionMode);
-    if (connectionMode == "serial") {
-      TransportSerial.create(address).then(
-        (transport) => {
-          transport.fetchInterval = fetchInterval;
-          node.connection = new MeshDevice(transport);
-          node.connection.log.settings.minLevel = logLevel;
-          connectionReady.emit(node.eventReady, node.connection);
-          node.trace("Device connected by serial port: " + address);
-        },
-        (e) => {
-          node.error("Exception in the serial connection");
-          node.error(e);
-        }
-      );
-    } else {
-      TransportHTTP.create(address, tls).then(
-        (transport) => {
-          transport.fetchInterval = fetchInterval;
-          node.connection = new MeshDevice(transport);
-          node.connection.log.settings.minLevel = logLevel;
-          connectionReady.emit(node.eventReady, node.connection);
-          node.trace("Device connected by http/https: " + address);
-        },
-        (e) => {
-          node.error("Exception in the http/https connection");
-          node.error(e);
-        }
-      );
-    }
+    //Emergency catch: prevents other flows and Node-RED from crashing.
+    //Serial connection, you are responsible for this!
+    process.on("unhandledRejection", (reason, p) => {
+      console.log("Unhandled rejection at: ", p, "reason:", reason);
+      node.error("Unhandled exception");
+      node.error(reason);
+      systemCrash = true; //Activates kills all nodes: everything will stops working
+      connectionReady.emit(node.eventCrash);
+    });
+
+    //Connect
+    deviceConnect(node);
 
     // Execute when the device is ready
-    connectionReady.once(node.eventReady, (connection) => {
-      //Add your code here
-    });
+    connectionReady.once(node.eventReady, (connection) => {});
 
     //Disconnect when done
     node.on("close", function (done) {
-      node.trace("Device disconnected: " + address);
+      node.trace("Device disconnected: " + node.address);
       node.connection.disconnect();
       done();
     });
   }
   RED.nodes.registerType("meshtastic-msg-device", DeviceNode);
+
+  //Handles the connections
+  function deviceConnect(confignode) {
+    confignode.trace("Connection mode >> " + confignode.connectionMode);
+    try {
+      if (systemCrash) throw new Error("Node killed due system crash");
+      if (confignode.connectionMode == "serial") {
+        TransportSerial.create(confignode.address).then(
+          (transport) => {
+            transport.fetchInterval = confignode.fetchInterval;
+            confignode.connection = new MeshDevice(transport);
+            confignode.connection.log.settings.minLevel = confignode.logLevel;
+            connectionReady.emit(confignode.eventReady, confignode.connection);
+            confignode.trace(
+              "Device connected by serial port: " + confignode.address
+            );
+          },
+          (e) => {
+            confignode.error("Exception in the serial connection");
+            confignode.error(e);
+          }
+        );
+      } else {
+        TransportHTTP.create(confignode.address, confignode.tls).then(
+          (transport) => {
+            transport.fetchInterval = confignode.fetchInterval;
+            confignode.connection = new MeshDevice(transport);
+            confignode.connection.log.settings.minLevel = confignode.logLevel;
+            connectionReady.emit(confignode.eventReady, confignode.connection);
+            confignode.trace(
+              "Device connected by http/https: " + confignode.address
+            );
+          },
+          (e) => {
+            confignode.error("Exception in the http/https connection");
+            confignode.error(e);
+          }
+        );
+      }
+    } catch (e) {
+      confignode.error("Exception in the connection initialization");
+      confignode.error(e);
+    }
+  }
 };

@@ -41,6 +41,7 @@ To uninstall, run `npm remove @danpeig/node-red-meshtastic-msg` from the same ba
 - **Node-RED crashing after an update**: This can happen if the update alters the structure of the device configuration node. Find the connection node in your `flows.json` and delete it. After restarting Node-RED you will be able to create a new device configuration node.
 - **Node-RED error message `TypeError: fetch failed`**: The host name or IP address cannot be reached from Node-RED server. This is caused by network connectivity problems. There is a Node test script in this project folder to help diagnosing the problem: [test_connection.mjs](test_connection.mjs).
 - **Permission to access serial devices**: The linux user running Node-RED must be part of the dialout group `sudo usermod -a -G dialout USER_NAME`
+- **Dead status**: If something goes seriously wrong with Mesthastic Web like hardware problems (serial connection) or unhandled exceptions, the nodes will enter *dead mode* and will stop working until the flow is reset. This should keep Node-RED running and your other flows safe. Unhandled crashes from other flows that have nothing to do with this library can also trigger the *dead status*.
 
 ## Examples
 
@@ -57,6 +58,8 @@ The [fundamentals_meshtastic_web.mjs](fundamentals_meshtastic_web.mjs) illustrat
 This node was created by [Daniel BP](http://www.danbp.org) and is available under the MIT license.
 
 ## Version history
+- **3.2 (14/11/2025)**
+    - New "dead status" to prevent Node-RED from crashing due unhandled bugs and failiures of Meshtastic Web stack and underlying libraries.
 - **3.1 (11/11/2025)**
     - Trace and error messages now use Node-RED implementation (trace messages require special configuration in Node-RED `settings.js`)
     - Added status indicators for all nodes

@@ -446,13 +446,5 @@
         "address": "meshtastic.local",
         "connection_mode": "http",
         "log_level": "1"
-    },
-    {
-        "id": "f95eb5d45d103a0f",
-        "type": "global-config",
-        "env": [],
-        "modules": {
-            "@danpeig/node-red-meshtastic-msg": "3.1.0"
-        }
     }
 ]
