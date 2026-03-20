@@ -58,6 +58,8 @@ The [fundamentals_meshtastic_web.mjs](fundamentals_meshtastic_web.mjs) illustrat
 This node was created by [Daniel BP](http://www.danbp.org) and is available under the MIT license.
 
 ## Version history
+- **3.3 (20/03/2026)**
+    - Bug fix: installation errors on Node 22 caused by outdated `import-sync` dependencies
 - **3.2 (14/11/2025)**
     - New "dead status" to prevent Node-RED from crashing due to unhandled bugs and failures in the Meshtastic Web stack and its underlying libraries.
 - **3.1 (11/11/2025)**
