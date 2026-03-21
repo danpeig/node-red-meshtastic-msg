@@ -1,5 +1,11 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
+# This workflow will run tests using node and then publish a package to npm when a release is created
 # For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+#
+# Publishing uses npm Trusted Publishers (OIDC) so no long-lived NPM_TOKEN secret is required.
+# Before this workflow can publish, you must configure GitHub Actions as a Trusted Publisher
+# for the @danpeig/node-red-meshtastic-msg package on https://www.npmjs.com:
+#   Package settings → Publishing → Add a publisher → GitHub Actions
+#   Repository: danpeig/node-red-meshtastic-msg  Workflow: npm-publish.yml
 
 name: Node.js Package
 
@@ -16,12 +22,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install    
-      - run: npm ci
+      - run: npm install
 
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,7 +36,4 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org/
       - run: npm install
-      - run: npm ci
-      - run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+      - run: npm publish --provenance --access public
