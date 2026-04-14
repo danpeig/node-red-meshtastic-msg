@@ -1,6 +1,6 @@
 {
   "name": "@danpeig/node-red-meshtastic-msg",
-  "version": "3.3.3",
+  "version": "3.3.4",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,8 +10,8 @@
   "license": "MIT",
   "description": "This module uses Meshtastic Web library to send and receive packets from a Meshtastic device connected via HTTP or serial.",
   "dependencies": {
-    "@meshtastic/transport-http": "~0.2.5",
-    "@meshtastic/transport-node-serial": "~0.0.2",
+    "@meshtastic/transport-http": "0.2.5",
+    "@meshtastic/transport-node-serial": "0.0.2",
     "import-sync": "^2.2.3"
   },
   "engines": {
