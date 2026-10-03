@@ -14,6 +14,7 @@ const RED = {
     createNode(instance, config) {
       instance.status = (s) => console.log("[status]", instance._label || "", s);
       instance.trace = (m) => console.log("[trace]", instance._label || "", m);
+      instance.warn = (m) => console.log("[warn]", instance._label || "", m);
       instance.error = (m) => console.log("[error]", instance._label || "", m);
       instance.on = (event, handler) => {
         instance._handlers = instance._handlers || {};
