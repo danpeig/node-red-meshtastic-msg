@@ -3,9 +3,11 @@ const EventEmitter = require("node:events"); //Manage events
 const meshtastic_core = importSync("@meshtastic/core"); //This is required because Node-RED does not support ES Modules
 const meshtastic_http = importSync("@meshtastic/transport-http"); //This is required because Node-RED does not support ES Modules
 const meshtastic_serial = importSync("@meshtastic/transport-node-serial"); //This is required because Node-RED does not support ES Modules
+const meshtastic_tcp = importSync("@meshtastic/transport-node"); //This is required because Node-RED does not support ES Modules
 const MeshDevice = meshtastic_core.MeshDevice;
 const TransportHTTP = meshtastic_http.TransportHTTP;
 const TransportSerial = meshtastic_serial.TransportNodeSerial;
+const TransportNode = meshtastic_tcp.TransportNode;
 
 const connectionReady = new EventEmitter(); //Notify all nodes of a successful connection
 let systemCrash = false; //Prevents nodes from working in case something goes seriously wrong
@@ -428,6 +430,17 @@ module.exports = function (RED) {
   }
   RED.nodes.registerType("meshtastic-msg-device", DeviceNode);
 
+  //Splits "host:port" into its parts. Returns the given default port if
+  //the address has no ":port" suffix (a bare IPv6 address has no port
+  //suffix support here, same limitation as the existing http/serial modes).
+  function splitHostPort(address, defaultPort) {
+    let separatorIndex = address.lastIndexOf(":");
+    if (separatorIndex === -1) return { host: address, port: defaultPort };
+    let host = address.slice(0, separatorIndex);
+    let port = Number(address.slice(separatorIndex + 1));
+    return { host: host, port: port };
+  }
+
   //Handles the connections
   function deviceConnect(confignode) {
     confignode.trace("Connection mode >> " + confignode.connectionMode);
@@ -446,6 +459,25 @@ module.exports = function (RED) {
           },
           (e) => {
             confignode.error("Exception in the serial connection");
+            confignode.error(e);
+          }
+        );
+      } else if (confignode.connectionMode == "tcp") {
+        let hostPort = splitHostPort(confignode.address, 4403);
+        // timeout:0 disables node:net's idle-socket timeout. The default
+        // (60000ms) tears down a perfectly healthy connection after 60s of
+        // mesh silence, which is normal, not a dead link.
+        TransportNode.create(hostPort.host, hostPort.port, 0).then(
+          (transport) => {
+            confignode.connection = new MeshDevice(transport);
+            confignode.connection.log.settings.minLevel = confignode.logLevel;
+            connectionReady.emit(confignode.eventReady, confignode.connection);
+            confignode.trace(
+              "Device connected by tcp: " + hostPort.host + ":" + hostPort.port
+            );
+          },
+          (e) => {
+            confignode.error("Exception in the tcp connection");
             confignode.error(e);
           }
         );
