@@ -12,6 +12,24 @@ const TransportNode = meshtastic_tcp.TransportNode;
 
 const connectionReady = new EventEmitter(); //Notify all nodes of a successful connection
 let systemCrash = false; //Prevents nodes from working in case something goes seriously wrong
+const activeDeviceNodes = new Set(); //Every live DeviceNode, so the single global crash handler below can reach all of them
+
+//Emergency catch: prevents other flows and Node-RED from crashing.
+//Serial connection, you are responsible for this!
+//Registered exactly once at module load, regardless of how many device
+//nodes exist -- previously this was registered inside DeviceNode's
+//constructor, so N configured devices meant N duplicate global listeners,
+//each independently killing every Meshtastic node on the first unhandled
+//rejection anywhere in the whole Node-RED instance (not just this module).
+process.on("unhandledRejection", (reason, p) => {
+  console.log("Unhandled rejection at: ", p, "reason:", reason);
+  systemCrash = true; //Activates kills all nodes: everything will stops working
+  for (const node of activeDeviceNodes) {
+    node.error("Unhandled exception");
+    node.error(reason);
+    connectionReady.emit(node.eventCrash);
+  }
+});
 
 module.exports = function (RED) {
   //-----------------------------------------------------------------------------
@@ -284,15 +302,9 @@ module.exports = function (RED) {
       config.connection_mode === undefined ? "http" : config.connection_mode;
     node.tls = node.connectionMode == "https" ? true : false;
 
-    //Emergency catch: prevents other flows and Node-RED from crashing.
-    //Serial connection, you are responsible for this!
-    process.on("unhandledRejection", (reason, p) => {
-      console.log("Unhandled rejection at: ", p, "reason:", reason);
-      node.error("Unhandled exception");
-      node.error(reason);
-      systemCrash = true; //Activates kills all nodes: everything will stops working
-      connectionReady.emit(node.eventCrash);
-    });
+    //Tracked so the single module-level unhandledRejection handler above
+    //can reach this node, and untracked on close so it doesn't leak.
+    activeDeviceNodes.add(node);
 
     //Connect
     deviceConnect(node);
@@ -301,6 +313,7 @@ module.exports = function (RED) {
     node.on("close", function (done) {
       node.closing = true; //Stop any in-flight or future reconnect attempts
       clearTimeout(node.reconnectTimer);
+      activeDeviceNodes.delete(node);
       node.trace("Device disconnected: " + node.address);
       if (node.connection) node.connection.disconnect();
       done();
@@ -397,17 +410,23 @@ module.exports = function (RED) {
       openTransport(confignode).then(
         (transport) => {
           if (confignode.closing) return; //Node was removed while connecting
-          confignode.connection = new MeshDevice(transport);
-          confignode.connection.log.settings.minLevel = confignode.logLevel;
-          connectionReady.emit(confignode.eventReady, confignode.connection);
+          let thisConnection = new MeshDevice(transport);
+          confignode.connection = thisConnection;
+          thisConnection.log.settings.minLevel = confignode.logLevel;
+          connectionReady.emit(confignode.eventReady, thisConnection);
 
           //Watchdog: the moment this specific connection reports itself
           //disconnected, drop it and start reconnecting -- instead of
           //leaving every node silently stuck on a dead transport forever.
-          confignode.connection.events.onDeviceStatus.subscribe((status) => {
+          //Checks identity against confignode.connection because this
+          //subscription is never explicitly torn down: without the check,
+          //a straggler event from an already-superseded connection could
+          //clobber a newer, healthy one.
+          thisConnection.events.onDeviceStatus.subscribe((status) => {
             if (
               status === DeviceStatusEnum.DeviceDisconnected &&
-              !confignode.closing
+              !confignode.closing &&
+              confignode.connection === thisConnection
             ) {
               confignode.connection = undefined;
               confignode.warn("Device disconnected, reconnecting");
