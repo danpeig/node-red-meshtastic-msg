@@ -102,20 +102,20 @@ re-run to check.
 ------------------------------------------------------------------------------
 If everything is OK with "tcp" mode, you should see:
 
-Connected to 192.168.1.66:4403 (TCP API reachable)
+Connected to my_device_ip:4403 (TCP API reachable)
 
 ------------------------------------------------------------------------------
 In case of problems with "tcp" mode, you should expect something like this.
 ECONNREFUSED means the port isn't open — either the device's firmware has no
 TCP API (unlikely, it's built in by default) or the address/port is wrong.
 
-Failed to connect to 192.168.1.66:4403
-Error: connect ECONNREFUSED 192.168.1.66:4403
+Failed to connect to wrong.device.ip:4403
+Error: connect ECONNREFUSED wrong.device.ip:4403
     at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
   errno: -111,
   code: 'ECONNREFUSED',
   syscall: 'connect',
-  address: '192.168.1.66',
+  address: '192.168.1.200',
   port: 4403
 }
 

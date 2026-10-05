@@ -4,6 +4,8 @@
 // Node-RED itself would, so the test exercises the actual patched code
 // path (deviceConnect's new "tcp" branch), not a copy of its logic.
 
+const registerMeshtasticMsg = require("./meshtastic-msg.js");
+
 const registeredTypes = {};
 
 const RED = {
@@ -27,10 +29,10 @@ const RED = {
   },
 };
 
-require("./meshtastic-msg.js")(RED);
+registerMeshtasticMsg(RED);
 
 const args = process.argv.slice(2);
-const address = args[0] || "192.168.1.66:4403";
+const address = args[0] || "meshtastic.local:4403";
 const message = args[1] || "local-test-tcp-mode: patched connection works";
 
 console.log("Connecting via tcp to " + address + " ...");

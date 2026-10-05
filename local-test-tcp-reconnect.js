@@ -9,6 +9,7 @@
 // Run with: node local-test-tcp-reconnect.js
 
 const net = require("node:net");
+const registerMeshtasticMsg = require("./meshtastic-msg.js");
 
 const PORT = 14403;
 let acceptCount = 0;
@@ -54,7 +55,7 @@ function runHarness() {
     },
   };
 
-  require("./meshtastic-msg.js")(RED);
+  registerMeshtasticMsg(RED);
 
   const DeviceNode = registeredTypes["meshtastic-msg-device"];
   var deviceNodeInstance = Object.create(DeviceNode.prototype);
