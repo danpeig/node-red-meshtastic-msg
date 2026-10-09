@@ -1,6 +1,6 @@
 # Node-RED Meshtastic messages node
 
-This node allows sending and receiving packets to a Meshtastic mesh network thru a device connected via HTTP(S) or serial. It is based on [Meshtastic Web](https://github.com/meshtastic/web) library.
+This node allows sending and receiving packets to a Meshtastic mesh network thru a device connected via HTTP(S), TCP or serial. It is based on [Meshtastic Web](https://github.com/meshtastic/web) library.
 
 ## Features
 - Send and receive text messages to/from any device in the mesh
@@ -9,8 +9,9 @@ This node allows sending and receiving packets to a Meshtastic mesh network thru
 - Send packets to any Meshtastic APP (port num)
 - Plug and Play: no additional servers, no containers, no CLI, no binary files
 - Indirect support to MQTT via uplink/downlink channels
-- Supported connection modes: HTTP, HTTPS (TLS) and Serial
+- Supported connection modes: HTTP, HTTPS (TLS), TCP and Serial
 - Can connect to multiple Meshtastic devices simultaneously
+- Automatically reconnects (capped exponential backoff, retries forever) if the connection drops for any reason, on every connection mode
 
 ## Limitations
 - Connect directly to MQTT server: this is not supported by [Meshtastic Web](https://github.com/meshtastic/web)
@@ -38,6 +39,9 @@ To uninstall, run `npm remove @danpeig/node-red-meshtastic-msg` from the same ba
     - Disable any other features that can take processor time or RAM: GPS, bluetooth, displays, modules, etc...
     - Connect using the serial port
 - **Device effectively sends the message to the mesh but later it reports it failed to send**: The same problem as the previous issue. Device is not providing a full response when asked for.
+    - If this happens on every single send, check whether the device's firmware was built with its HTTP API included at all. Official ESP32/TBEAM release builds from [meshtastic/firmware](https://github.com/meshtastic/firmware) set `MESHTASTIC_EXCLUDE_WEBSERVER=1` and strip the HTTP API (`/api/v1/toradio`, port 80) out of the compiled binary entirely — the device's native TCP API (port 4403) stays available either way. A plain `curl http://<device-ip>/` (connection refused) versus a raw TCP probe on port 4403 (connects fine) tells them apart. If the HTTP port is gone, switch this node's connection mode to `tcp` instead of rebuilding firmware.
+- **`tcp` mode used to disconnect after exactly 60 seconds of mesh silence**: `@meshtastic/transport-node` applies `node:net`'s socket idle-timeout (default 60000ms) to the connection. On a quiet mesh with no incoming/outgoing traffic for 60s, the socket was torn down even though the link was perfectly healthy. Fixed by passing `timeout: 0` to `TransportNode.create()`, which disables the idle-timeout entirely.
+- **Connection drops are no longer permanent**: previously, once any connection mode disconnected for any reason (device reboot, network blip, USB replug), every node was silently stuck forever — there was no reconnect logic at all. The device node now watches its own connection status and reconnects automatically with capped exponential backoff (starts at 1s, doubles up to a 30s cap, retries indefinitely).
 - **Node-RED crashing after an update**: This can happen if the update alters the structure of the device configuration node. Find the connection node in your `flows.json` and delete it. After restarting Node-RED you will be able to create a new device configuration node.
 - **Node-RED error message `TypeError: fetch failed`**: The host name or IP address cannot be reached from Node-RED server. This is caused by network connectivity problems. There is a Node test script in this project folder to help diagnosing the problem: [test_connection.mjs](test_connection.mjs).
 - **Permission to access serial devices**: The linux user running Node-RED must be part of the dialout group `sudo usermod -a -G dialout USER_NAME`
@@ -58,6 +62,12 @@ The [fundamentals_meshtastic_web.mjs](fundamentals_meshtastic_web.mjs) illustrat
 This node was created by [Daniel BP](http://www.danbp.org) and is available under the MIT license.
 
 ## Version history
+- **Unreleased**
+    - Added `tcp` connection mode (`@meshtastic/transport-node`), for devices whose firmware build excludes the HTTP API (see Known issues)
+    - Fixed `tcp` mode silently disconnecting after 60s of mesh inactivity (idle-socket timeout, see Known issues)
+    - Added automatic reconnection with capped exponential backoff, for all connection modes, on any disconnect
+    - Fixed a status-display bug where a "disconnected" status would immediately be overwritten by "connecting" (missing `break` in the status switch)
+    - Internal: de-duplicated the per-node connection/crash wiring shared by all six node types into two small helpers (`onDeviceReady`, `onSendInput`)
 - **3.4 (14/04/2026)**
     - Bug fix: force exact version of dependencies to prevent breaking
 - **3.3 (20/03/2026)**

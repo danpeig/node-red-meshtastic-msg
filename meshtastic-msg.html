@@ -198,6 +198,7 @@
             options: [
               { value: "http", label: "http" },
               { value: "https", label: "https (TLS)" },
+              { value: "tcp", label: "tcp" },
               { value: "serial", label: "serial" },
             ],
           },
@@ -455,12 +456,12 @@ Output the log from [Mesthastic.js](https://js.meshtastic.org) library. Usefull 
 <!-- Meshtastic device configuration node -->
 <script type="text/markdown" data-help-name="meshtastic-msg-device">
 This will setup the connection to the Meshtastic node.
-The connection protocol can be HTTP or serial. Bluetooth or MQTT are not supported yet.
+The connection protocol can be HTTP, TCP or serial. Bluetooth or MQTT are not supported yet.
 
 ### Options
 
 - `Connection mode`: Select the type of the connection. Default is _http_.
-- `IP, hostname or device` (string) : IP address, hostname or device of the Meshtastic radio to connect. Examples: _192.168.0.15_, _meshtastic.local_, _/dev/ttyUSB0_
+- `IP, hostname or device` (string) : IP address, hostname or device of the Meshtastic radio to connect. Examples: _192.168.0.15_, _meshtastic.local_, _/dev/ttyUSB0_. For `tcp` mode, an optional `:port` suffix is supported (example: _192.168.0.15:4403_) and defaults to the Meshtastic native TCP port, _4403_, if omitted.
 - `Fetch interval` (integer): Interval between polling data from the device. Default is _5000ms_.
 - `Log level` (integer): Default is _3_. Recommended for production is _5_
 
