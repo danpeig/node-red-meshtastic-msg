@@ -62,12 +62,13 @@ The [fundamentals_meshtastic_web.mjs](fundamentals_meshtastic_web.mjs) illustrat
 This node was created by [Daniel BP](http://www.danbp.org) and is available under the MIT license.
 
 ## Version history
-- **Unreleased**
+- **4.0 (09/10/2026)**
     - Added `tcp` connection mode (`@meshtastic/transport-node`), for devices whose firmware build excludes the HTTP API (see Known issues)
     - Fixed `tcp` mode silently disconnecting after 60s of mesh inactivity (idle-socket timeout, see Known issues)
     - Added automatic reconnection with capped exponential backoff, for all connection modes, on any disconnect
     - Fixed a status-display bug where a "disconnected" status would immediately be overwritten by "connecting" (missing `break` in the status switch)
     - Internal: de-duplicated the per-node connection/crash wiring shared by all six node types into two small helpers (`onDeviceReady`, `onSendInput`)
+    - Credits to [@PabloVitasso ](https://github.com/PabloVitasso)
 - **3.4 (14/04/2026)**
     - Bug fix: force exact version of dependencies to prevent breaking
 - **3.3 (20/03/2026)**
