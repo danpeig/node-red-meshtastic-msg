@@ -17,7 +17,7 @@
     "import-sync": "^2.2.3"
   },
   "engines": {
-    "node": ">=18.5"
+    "node": ">=22"
   },
   "repository": {
     "type": "git",
@@ -34,7 +34,7 @@
     "meshtastic.js"
   ],
   "node-red": {
-    "version": ">=4.x",
+    "version": ">=5.x",
     "nodes": {
       "meshtastic-msg": "meshtastic-msg.js"
     }
