@@ -1,6 +1,6 @@
 {
   "name": "@danpeig/node-red-meshtastic-msg",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,7 +17,7 @@
     "import-sync": "^2.2.3"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "repository": {
     "type": "git",
