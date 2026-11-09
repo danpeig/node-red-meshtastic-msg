@@ -19,13 +19,21 @@ const FAST_SEND_MS = 50;
 const SLOW_SEND_MS = 2000;
 
 //Payload prefixes: "slow" takes SLOW_SEND_MS, "throw" throws before it
-//returns a Promise, anything else takes FAST_SEND_MS.
+//returns a Promise, "reject" fails like a radio-reported MAX_RETRANSMIT,
+//"ratelimit" like RATE_LIMIT_EXCEEDED, anything else takes FAST_SEND_MS.
+//Every call is recorded in sendCalls, with its time.
 let sendCount = 0;
+const sendCalls = [];
 meshtasticCore.MeshDevice.prototype.sendText = function (text) {
   sendCount++;
   let id = sendCount;
+  sendCalls.push({ text: String(text), at: Date.now() });
   if (String(text).startsWith("throw"))
     throw new Error("fake synchronous throw");
+  if (String(text).startsWith("reject"))
+    return Promise.reject({ id: id, error: 5 }); //What the library does on MAX_RETRANSMIT
+  if (String(text).startsWith("ratelimit"))
+    return Promise.reject({ id: id, error: 38 }); //A code @meshtastic/core 2.6.7 does not name
   let delay = String(text).startsWith("slow") ? SLOW_SEND_MS : FAST_SEND_MS;
   return new Promise((resolve) => setTimeout(() => resolve(id), delay));
 };
@@ -113,6 +121,7 @@ function makeRed(logs) {
         log_level: 6,
         ...config,
       });
+      currentDevice.sendSpacingMs = 0; //Pacing has its own test
       return currentDevice;
     },
     makeSender() {
@@ -252,6 +261,25 @@ async function testOnDemand() {
     unhandled === 0
   );
 
+  send("reject me");
+  check(
+    "on demand: a routing error is logged by name",
+    await waitFor(
+      () => logs.some((l) => /^error: MAX_RETRANSMIT \(packet \d+\)$/.test(l)),
+      2000
+    )
+  );
+
+  send("ratelimit me");
+  check(
+    "on demand: a routing error newer than the library is logged by name",
+    await waitFor(
+      () =>
+        logs.some((l) => /^error: RATE_LIMIT_EXCEEDED \(packet \d+\)$/.test(l)),
+      2000
+    )
+  );
+
   await closeDevice(device);
   check(
     "on demand: node close closes the connection",
@@ -333,6 +361,53 @@ async function testOnDemandCloseDuringOpen() {
   );
 }
 
+async function testPacing() {
+  const logs = [];
+  const red = makeRed(logs);
+  const device = red.makeDevice({ connection_policy: "ondemand" });
+  device.sendSpacingMs = 300;
+  const send = red.makeSender();
+  const first = sendCalls.length;
+  //Three sends at once, released together when the open completes. The
+  //first is slow: its ACK must not hold up the next send.
+  send("slow a");
+  send("b");
+  send("c");
+  await waitFor(() => sendCalls.length === first + 3, 3000);
+  const calls = sendCalls.slice(first);
+  check(
+    "pacing: sends go out in arrival order",
+    calls.map((c) => c.text).join(",") === "slow a,b,c"
+  );
+  check(
+    "pacing: sends are spaced by sendSpacingMs",
+    calls[1].at - calls[0].at >= 290 && calls[2].at - calls[1].at >= 290
+  );
+  check(
+    "pacing: a slow ACK does not hold up the next send",
+    calls[1].at - calls[0].at < SLOW_SEND_MS
+  );
+  await sleep(SLOW_SEND_MS);
+  check("pacing: no errors logged", count(logs, "error") === 0);
+  await closeDevice(device);
+}
+
+function testOnDemandNeedsTcp() {
+  const logs = [];
+  const red = makeRed(logs);
+  const device = red.makeDevice({
+    connection_policy: "ondemand",
+    connection_mode: "http", //Not serial: a bad serial path crashes the serial transport itself
+    address: "127.0.0.1:1",
+  });
+  check("ondemand needs tcp: http stays persistent", device.onDemand === false);
+  check(
+    "ondemand needs tcp: one warning names the mode",
+    count(logs, "warn: Connection policy ondemand needs tcp mode") === 1
+  );
+  device._handlers.close(() => {});
+}
+
 async function testPersistent() {
   const base = accepted;
   const logs = [];
@@ -341,6 +416,18 @@ async function testPersistent() {
   check(
     "persistent: connects at start",
     await waitFor(() => accepted === base + 1, 2000)
+  );
+
+  device.sendSpacingMs = 300; //Must be ignored: persistent is not paced
+  const send = red.makeSender();
+  const first = sendCalls.length;
+  send("persistent a");
+  send("persistent b");
+  await waitFor(() => sendCalls.length === first + 2, 2000);
+  const calls = sendCalls.slice(first);
+  check(
+    "persistent: sends are not paced",
+    calls.length === 2 && calls[1].at - calls[0].at < 200
   );
   await sleep(1500);
   check("persistent: stays open with no send", openSockets.size === 1);
@@ -358,10 +445,12 @@ async function testPersistent() {
 
 server.listen(0, "127.0.0.1", async () => {
   testIdleTimeoutParsing();
+  testOnDemandNeedsTcp();
   await testOnDemand();
   await testOnDemandOpenFails();
   await testOnDemandConfigureTimeout();
   await testOnDemandCloseDuringOpen();
+  await testPacing();
   await testPersistent();
   console.log(failures === 0 ? "ALL PASS" : failures + " FAILED");
   process.exit(failures === 0 ? 0 : 1);

@@ -6,6 +6,11 @@ const meshtastic_serial = importSync("@meshtastic/transport-node-serial"); //Thi
 const meshtastic_tcp = importSync("@meshtastic/transport-node"); //This is required because Node-RED does not support ES Modules
 const MeshDevice = meshtastic_core.MeshDevice;
 const DeviceStatusEnum = meshtastic_core.Types.DeviceStatusEnum;
+const RoutingError = meshtastic_core.Protobuf.Mesh.Routing_Error;
+const NEWER_ROUTING_ERRORS = {
+  38: "RATE_LIMIT_EXCEEDED",
+  39: "PKI_SEND_FAIL_PUBLIC_KEY",
+}; //Firmware 2.7 codes missing from @meshtastic/core 2.6.7
 const TransportHTTP = meshtastic_http.TransportHTTP;
 const TransportSerial = meshtastic_serial.TransportNodeSerial;
 const TransportNode = meshtastic_tcp.TransportNode;
@@ -14,6 +19,7 @@ const connectionReady = new EventEmitter(); //Notify all nodes of a successful c
 const DEFAULT_IDLE_TIMEOUT_MS = 30000; //"ondemand" policy: close after this long with no send
 const MAX_IDLE_TIMEOUT_MS = 86400000; //One day. Keeps the idle timer far below setTimeout's 2^31-1 ms limit
 const CONFIGURE_TIMEOUT_MS = 20000; //"ondemand" policy: give up on the config handshake after this long
+const SEND_SPACING_MS = 2500; //"ondemand" policy: the firmware rejects a text within 2 s of the previous one (RATE_LIMIT_EXCEEDED)
 let systemCrash = false; //Prevents nodes from working in case something goes seriously wrong
 const activeDeviceNodes = new Set(); //Every live DeviceNode, so the single global crash handler below can reach all of them
 
@@ -84,7 +90,7 @@ module.exports = function (RED) {
       function sendFailed(e) {
         node.status({ fill: "red", shape: "dot", text: "error" });
         node.error("Failed to send");
-        node.error(e);
+        node.error(errorText(e));
       }
       function noConnection(e) {
         node.status({ fill: "red", shape: "dot", text: "not connected" });
@@ -93,10 +99,11 @@ module.exports = function (RED) {
       sendStarted(device);
       acquireConnection(device)
         .then(
-          (connection) => send(connection, msg).then(sent, sendFailed),
+          (connection) =>
+            paced(device, () => send(connection, msg)).then(sent, sendFailed),
           noConnection
         )
-        .catch(sendFailed) //send() threw before it returned a Promise
+        .catch(sendFailed) //Last resort: an unhandled rejection kills every node
         .finally(() => sendSettled(device));
     });
   }
@@ -314,10 +321,17 @@ module.exports = function (RED) {
     //(onDemand) opens a connection only when a send needs one, and closes it
     //after idleTimeoutMs with no send in flight. A radio serves one API client
     //at a time, so a persistent connection keeps every other client (the
-    //phone app, the CLI) off the radio. A TCP session idle for 15 minutes is
-    //also closed by the firmware, which a persistent connection then has to
-    //rebuild.
-    node.onDemand = config.connection_policy === "ondemand";
+    //phone app, the CLI) off the radio. Firmware 2.7 also closes a TCP
+    //session that sends nothing for 15 minutes (TCP_IDLE_TIMEOUT_MS). Both
+    //are TCP API rules, and reopening a serial port can reset an ESP32
+    //board, so "ondemand" is for tcp only. Any other mode stays persistent.
+    node.onDemand =
+      config.connection_policy === "ondemand" && node.connectionMode === "tcp";
+    if (config.connection_policy === "ondemand" && !node.onDemand)
+      node.warn(
+        "Connection policy ondemand needs tcp mode, using persistent for " +
+          node.connectionMode
+      );
     node.idleTimeoutMs = Math.min(
       Number(config.idle_timeout) > 0
         ? Number(config.idle_timeout)
@@ -326,6 +340,9 @@ module.exports = function (RED) {
     );
     node.inFlight = 0; //Sends started and not yet settled
     node.configureTimeoutMs = CONFIGURE_TIMEOUT_MS; //"ondemand": wait this long for the config handshake
+    node.sendSpacingMs = SEND_SPACING_MS;
+    node.sendQueue = Promise.resolve(); //See paced()
+    node.lastSendAt = 0;
 
     //Tracked so the single module-level unhandledRejection handler above
     //can reach this node, and untracked on close so it doesn't leak.
@@ -461,10 +478,21 @@ module.exports = function (RED) {
     });
   }
 
-  //A rejection reason is not always an Error: the library rejects some
-  //sends with a plain { id, error } object.
+  //A rejection reason is not always an Error: the library rejects a send
+  //that the radio reports as failed with a plain { id, error } object,
+  //where error is a Routing_Error number, for example 5 = MAX_RETRANSMIT.
   function errorText(e) {
-    return e instanceof Error ? e.message : JSON.stringify(e);
+    if (e instanceof Error) return e.message;
+    if (e && typeof e.error === "number")
+      return (
+        (RoutingError[e.error] ||
+          NEWER_ROUTING_ERRORS[e.error] ||
+          "routing error " + e.error) +
+        " (packet " +
+        e.id +
+        ")"
+      );
+    return JSON.stringify(e);
   }
 
   //Handles the persistent connection lifecycle: connect, watch for
@@ -576,6 +604,29 @@ module.exports = function (RED) {
       //so completion is read from the status event above.
       connection.configure().catch(() => {});
     });
+  }
+
+  //"ondemand" only: runs task() no sooner than sendSpacingMs after the
+  //previous send started, in arrival order. Sends that waited for an open
+  //are released together, and the firmware drops a text that comes within
+  //2 s of the previous one (PhoneAPI::handleToRadioPacket,
+  //RATE_LIMIT_EXCEEDED). The queue advances when a send starts, not when
+  //its ACK arrives, so a slow ACK does not hold up the next send. sendQueue
+  //never rejects. A persistent device sends at once, as before.
+  function paced(confignode, task) {
+    if (!confignode.onDemand) return Promise.resolve().then(task);
+    let start = confignode.sendQueue
+      .then(() => {
+        let wait =
+          confignode.lastSendAt + confignode.sendSpacingMs - Date.now();
+        if (wait > 0)
+          return new Promise((resolve) => setTimeout(resolve, wait));
+      })
+      .then(() => {
+        confignode.lastSendAt = Date.now();
+      });
+    confignode.sendQueue = start;
+    return start.then(task);
   }
 
   //Bookkeeping around every send, so an "ondemand" device knows when it
