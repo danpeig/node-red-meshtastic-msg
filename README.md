@@ -218,6 +218,11 @@ The connection protocol can be HTTP, HTTPS or Serial. Bluetooth or MQTT are not 
 * `IP, hostname or device` (string) : IP address, hostname or device of the Meshtastic radio to connect. Examples: *192.168.0.15*, *meshtastic.local*, */dev/ttyUSB0*
 * `Fetch interval` (integer): Interval between polling data from the device. Default is *5000ms*.
 * `Log level` (integer): Default is *3*. Recommended for production is *5*
+* `Connection policy`: *persistent* (default) or *on demand* (stored as `ondemand`).
+  * *persistent* opens the connection at startup and keeps it for the whole Node-RED lifetime. It reconnects after every drop.
+  * *on demand* opens the connection only when a send node needs it, and closes it after `Idle timeout` with no send in flight. Each open runs the config handshake and waits for it, up to 20 s, before the send: until a client asks for config, the firmware sends it nothing, not even the routing ACK for a sent packet. A failed open fails that send only; there is no retry loop. Use it when Node-RED only sends. Receive, event, status and log nodes get data only while a connection is open.
+  * Why it exists: a Meshtastic radio serves one API client at a time, and a new client closes the old one. A persistent connection keeps the phone app and the CLI off the radio, because it takes the radio back within a second. The firmware also closes a TCP session that sends nothing for 15 minutes (`TCP_IDLE_TIMEOUT_MS` in `src/mesh/api/ServerAPI.cpp`), so a send-only persistent connection drops and reconnects every 15 minutes.
+* `Idle timeout` (integer, ms): *on demand* only. Default is *30000ms*. Capped at one day.
 
 ### Log levels
 - 0: everything
