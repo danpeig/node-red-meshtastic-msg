@@ -62,6 +62,8 @@ The [fundamentals_meshtastic_web.mjs](fundamentals_meshtastic_web.mjs) illustrat
 This node was created by [Daniel BP](http://www.danbp.org) and is available under the MIT license.
 
 ## Version history
+- **4.1 (19/11/2027)**
+    - "On demand" connection policy. Credits to [@PabloVitasso ](https://github.com/PabloVitasso)
 - **4.0 (09/10/2026)**
     - Added `tcp` connection mode (`@meshtastic/transport-node`), for devices whose firmware build excludes the HTTP API (see Known issues)
     - Fixed `tcp` mode silently disconnecting after 60s of mesh inactivity (idle-socket timeout, see Known issues)
