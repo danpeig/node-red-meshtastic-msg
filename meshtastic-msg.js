@@ -6,11 +6,20 @@ const meshtastic_serial = importSync("@meshtastic/transport-node-serial"); //Thi
 const meshtastic_tcp = importSync("@meshtastic/transport-node"); //This is required because Node-RED does not support ES Modules
 const MeshDevice = meshtastic_core.MeshDevice;
 const DeviceStatusEnum = meshtastic_core.Types.DeviceStatusEnum;
+const RoutingError = meshtastic_core.Protobuf.Mesh.Routing_Error;
+const NEWER_ROUTING_ERRORS = {
+  38: "RATE_LIMIT_EXCEEDED",
+  39: "PKI_SEND_FAIL_PUBLIC_KEY",
+}; //Firmware 2.7 codes missing from @meshtastic/core 2.6.7
 const TransportHTTP = meshtastic_http.TransportHTTP;
 const TransportSerial = meshtastic_serial.TransportNodeSerial;
 const TransportNode = meshtastic_tcp.TransportNode;
 
 const connectionReady = new EventEmitter(); //Notify all nodes of a successful connection
+const DEFAULT_IDLE_TIMEOUT_MS = 30000; //"ondemand" policy: close after this long with no send
+const MAX_IDLE_TIMEOUT_MS = 86400000; //One day. Keeps the idle timer far below setTimeout's 2^31-1 ms limit
+const CONFIGURE_TIMEOUT_MS = 20000; //"ondemand" policy: give up on the config handshake after this long
+const SEND_SPACING_MS = 2500; //"ondemand" policy: the firmware rejects a text within 2 s of the previous one (RATE_LIMIT_EXCEEDED)
 let systemCrash = false; //Prevents nodes from working in case something goes seriously wrong
 const activeDeviceNodes = new Set(); //Every live DeviceNode, so the single global crash handler below can reach all of them
 
@@ -69,28 +78,33 @@ module.exports = function (RED) {
   //the Promise from the actual send call.
   function onSendInput(node, device, send) {
     node.on("input", function (msg) {
-      if (!device || !device.connection) {
+      if (!device) {
         node.status({ fill: "red", shape: "dot", text: "not connected" });
         node.error("Cannot send: device is not connected");
         return;
       }
-      try {
-        if (systemCrash) throw new Error("Node killed due system crash");
-        send(device.connection, msg)
-          .then((id) => {
-            node.status({ fill: "green", shape: "dot", text: "active" });
-            node.trace("Sent, id: " + id);
-          })
-          .catch((e) => {
-            node.status({ fill: "red", shape: "dot", text: "error" });
-            node.error("Failed to send");
-            node.error(e);
-          });
-      } catch (e) {
-        node.status({ fill: "red", shape: "dot", text: "error" });
-        node.error("Exception while sending");
-        node.error(e);
+      function sent(id) {
+        node.status({ fill: "green", shape: "dot", text: "active" });
+        node.trace("Sent, id: " + id);
       }
+      function sendFailed(e) {
+        node.status({ fill: "red", shape: "dot", text: "error" });
+        node.error("Failed to send");
+        node.error(errorText(e));
+      }
+      function noConnection(e) {
+        node.status({ fill: "red", shape: "dot", text: "not connected" });
+        node.error("Cannot send: " + errorText(e));
+      }
+      sendStarted(device);
+      acquireConnection(device)
+        .then(
+          (connection) =>
+            paced(device, () => send(connection, msg)).then(sent, sendFailed),
+          noConnection
+        )
+        .catch(sendFailed) //Last resort: an unhandled rejection kills every node
+        .finally(() => sendSettled(device));
     });
   }
 
@@ -302,20 +316,51 @@ module.exports = function (RED) {
       config.connection_mode === undefined ? "http" : config.connection_mode;
     node.tls = node.connectionMode == "https" ? true : false;
 
+    //Connection policy. "persistent" (default) holds one connection for the
+    //node's whole lifetime and reconnects on every drop. "ondemand"
+    //(onDemand) opens a connection only when a send needs one, and closes it
+    //after idleTimeoutMs with no send in flight. A radio serves one API client
+    //at a time, so a persistent connection keeps every other client (the
+    //phone app, the CLI) off the radio. Firmware 2.7 also closes a TCP
+    //session that sends nothing for 15 minutes (TCP_IDLE_TIMEOUT_MS). Both
+    //are TCP API rules, and reopening a serial port can reset an ESP32
+    //board, so "ondemand" is for tcp only. Any other mode stays persistent.
+    node.onDemand =
+      config.connection_policy === "ondemand" && node.connectionMode === "tcp";
+    if (config.connection_policy === "ondemand" && !node.onDemand)
+      node.warn(
+        "Connection policy ondemand needs tcp mode, using persistent for " +
+          node.connectionMode
+      );
+    node.idleTimeoutMs = Math.min(
+      Number(config.idle_timeout) > 0
+        ? Number(config.idle_timeout)
+        : DEFAULT_IDLE_TIMEOUT_MS,
+      MAX_IDLE_TIMEOUT_MS
+    );
+    node.inFlight = 0; //Sends started and not yet settled
+    node.configureTimeoutMs = CONFIGURE_TIMEOUT_MS; //"ondemand": wait this long for the config handshake
+    node.sendSpacingMs = SEND_SPACING_MS;
+    node.sendQueue = Promise.resolve(); //See paced()
+    node.lastSendAt = 0;
+
     //Tracked so the single module-level unhandledRejection handler above
     //can reach this node, and untracked on close so it doesn't leak.
     activeDeviceNodes.add(node);
 
-    //Connect
-    deviceConnect(node);
+    //Connect. An "ondemand" device waits for its first send.
+    if (!node.onDemand) deviceConnect(node);
 
     //Disconnect when done
     node.on("close", function (done) {
       node.closing = true; //Stop any in-flight or future reconnect attempts
       clearTimeout(node.reconnectTimer);
+      clearTimeout(node.idleTimer);
       activeDeviceNodes.delete(node);
       node.trace("Device disconnected: " + node.address);
-      if (node.connection) node.connection.disconnect();
+      let connection = node.connection;
+      node.connection = undefined;
+      if (connection) closeConnection(node, connection);
       done();
     });
   }
@@ -398,9 +443,61 @@ module.exports = function (RED) {
     );
   }
 
-  //Handles the connection lifecycle: connect, watch for disconnects, and
-  //retry with backoff. Runs until confignode.closing is set (node removed
-  //or redeployed) or a system crash is flagged.
+  //Wraps an open transport in a MeshDevice and makes it the device's
+  //current connection. Calls onDrop when this specific connection reports
+  //itself disconnected while it is still the current one. The identity
+  //check matters because this subscription is never explicitly torn down:
+  //without it, a straggler event from an already-superseded connection
+  //could clobber a newer, healthy one.
+  function adoptConnection(confignode, transport, onDrop) {
+    let thisConnection = new MeshDevice(transport);
+    confignode.connection = thisConnection;
+    thisConnection.log.settings.minLevel = confignode.logLevel;
+    connectionReady.emit(confignode.eventReady, thisConnection);
+
+    thisConnection.events.onDeviceStatus.subscribe((status) => {
+      if (
+        status === DeviceStatusEnum.DeviceDisconnected &&
+        !confignode.closing &&
+        confignode.connection === thisConnection
+      ) {
+        confignode.connection = undefined;
+        onDrop();
+      }
+    });
+    return thisConnection;
+  }
+
+  //Closes a connection or a bare transport that is no longer the current
+  //one. Both have an async disconnect(). Never leaves a rejected Promise
+  //behind: an unhandled rejection here would trip the module-wide crash
+  //handler and kill every Meshtastic node.
+  function closeConnection(confignode, connection) {
+    connection.disconnect().catch((e) => {
+      confignode.trace("Disconnect failed: " + errorText(e));
+    });
+  }
+
+  //A rejection reason is not always an Error: the library rejects a send
+  //that the radio reports as failed with a plain { id, error } object,
+  //where error is a Routing_Error number, for example 5 = MAX_RETRANSMIT.
+  function errorText(e) {
+    if (e instanceof Error) return e.message;
+    if (e && typeof e.error === "number")
+      return (
+        (RoutingError[e.error] ||
+          NEWER_ROUTING_ERRORS[e.error] ||
+          "routing error " + e.error) +
+        " (packet " +
+        e.id +
+        ")"
+      );
+    return JSON.stringify(e);
+  }
+
+  //Handles the persistent connection lifecycle: connect, watch for
+  //disconnects, and retry with backoff. Runs until confignode.closing is set
+  //(node removed or redeployed) or a system crash is flagged.
   function deviceConnect(confignode, attempt) {
     attempt = attempt || 0;
     if (confignode.closing) return;
@@ -410,28 +507,11 @@ module.exports = function (RED) {
       openTransport(confignode).then(
         (transport) => {
           if (confignode.closing) return; //Node was removed while connecting
-          let thisConnection = new MeshDevice(transport);
-          confignode.connection = thisConnection;
-          thisConnection.log.settings.minLevel = confignode.logLevel;
-          connectionReady.emit(confignode.eventReady, thisConnection);
-
-          //Watchdog: the moment this specific connection reports itself
-          //disconnected, drop it and start reconnecting -- instead of
-          //leaving every node silently stuck on a dead transport forever.
-          //Checks identity against confignode.connection because this
-          //subscription is never explicitly torn down: without the check,
-          //a straggler event from an already-superseded connection could
-          //clobber a newer, healthy one.
-          thisConnection.events.onDeviceStatus.subscribe((status) => {
-            if (
-              status === DeviceStatusEnum.DeviceDisconnected &&
-              !confignode.closing &&
-              confignode.connection === thisConnection
-            ) {
-              confignode.connection = undefined;
-              confignode.warn("Device disconnected, reconnecting");
-              scheduleReconnect(confignode, 0); //A connection was established, so restart backoff from scratch
-            }
+          //Watchdog: the moment this connection drops, start reconnecting --
+          //instead of leaving every node silently stuck on a dead transport.
+          adoptConnection(confignode, transport, () => {
+            confignode.warn("Device disconnected, reconnecting");
+            scheduleReconnect(confignode, 0); //A connection was established, so restart backoff from scratch
           });
         },
         (e) => {
@@ -446,5 +526,135 @@ module.exports = function (RED) {
       confignode.error("Exception in the connection initialization");
       confignode.error(e);
     }
+  }
+
+  //Returns a Promise of a connection that a send can use. A persistent
+  //device only hands out its current connection. An "ondemand" device
+  //opens one if it has none. Two sends at the same time share one open
+  //attempt. A failed open rejects that send only: there is no retry loop,
+  //the next send simply tries again.
+  function acquireConnection(confignode) {
+    if (systemCrash)
+      return Promise.reject(new Error("Node killed due system crash"));
+    if (confignode.opening) return confignode.opening; //An open is in progress: share it
+    if (confignode.connection) return Promise.resolve(confignode.connection);
+    if (!confignode.onDemand)
+      return Promise.reject(new Error("device is not connected"));
+    if (confignode.closing)
+      return Promise.reject(new Error("device node is closing"));
+    confignode.trace("Opening an ondemand connection");
+    confignode.opening = openTransport(confignode)
+      .then((transport) => {
+        if (confignode.closing) {
+          closeConnection(confignode, transport);
+          throw new Error("device node is closing");
+        }
+        let connection = adoptConnection(confignode, transport, () => {
+          //The radio closed it (another client took over, or idle
+          //timeout). Normal for this policy, unless a send was waiting.
+          if (confignode.inFlight > 0)
+            confignode.warn("Device disconnected while a send was waiting");
+          else confignode.trace("Device disconnected");
+        });
+        return configureConnection(confignode, connection).catch((e) => {
+          if (confignode.connection === connection)
+            confignode.connection = undefined;
+          closeConnection(confignode, connection);
+          throw e;
+        });
+      })
+      .finally(() => {
+        confignode.opening = undefined;
+      });
+    return confignode.opening;
+  }
+
+  //Runs the config handshake and resolves once the radio reports it done.
+  //Until a client asks for config, the firmware sends it nothing at all
+  //(PhoneAPI state STATE_SEND_NOTHING), not even the routing ACK for a sent
+  //packet. Without the handshake every send waits for the library's 60 s
+  //queue timeout and then fails, although the packet did go out.
+  function configureConnection(confignode, connection) {
+    return new Promise((resolve, reject) => {
+      let timer;
+      let unsubscribe = connection.events.onDeviceStatus.subscribe((status) => {
+        if (status === DeviceStatusEnum.DeviceConfigured) {
+          finish();
+          resolve(connection);
+        } else if (status === DeviceStatusEnum.DeviceDisconnected) {
+          finish();
+          reject(new Error("device disconnected during config"));
+        }
+      });
+      timer = setTimeout(() => {
+        finish();
+        reject(
+          new Error(
+            "radio did not finish its config within " +
+              confignode.configureTimeoutMs +
+              "ms"
+          )
+        );
+      }, confignode.configureTimeoutMs);
+      function finish() {
+        clearTimeout(timer);
+        unsubscribe();
+      }
+      //configure() resolves on its own queue timeout, not on completion,
+      //so completion is read from the status event above.
+      connection.configure().catch(() => {});
+    });
+  }
+
+  //"ondemand" only: runs task() no sooner than sendSpacingMs after the
+  //previous send started, in arrival order. Sends that waited for an open
+  //are released together, and the firmware drops a text that comes within
+  //2 s of the previous one (PhoneAPI::handleToRadioPacket,
+  //RATE_LIMIT_EXCEEDED). The queue advances when a send starts, not when
+  //its ACK arrives, so a slow ACK does not hold up the next send. sendQueue
+  //never rejects. A persistent device sends at once, as before.
+  function paced(confignode, task) {
+    if (!confignode.onDemand) return Promise.resolve().then(task);
+    let start = confignode.sendQueue
+      .then(() => {
+        let wait =
+          confignode.lastSendAt + confignode.sendSpacingMs - Date.now();
+        if (wait > 0)
+          return new Promise((resolve) => setTimeout(resolve, wait));
+      })
+      .then(() => {
+        confignode.lastSendAt = Date.now();
+      });
+    confignode.sendQueue = start;
+    return start.then(task);
+  }
+
+  //Bookkeeping around every send, so an "ondemand" device knows when it
+  //is idle. The idle timer starts only when nothing is in flight.
+  function sendStarted(confignode) {
+    confignode.inFlight++;
+    clearTimeout(confignode.idleTimer);
+  }
+
+  function sendSettled(confignode) {
+    confignode.inFlight--;
+    if (!confignode.onDemand) return;
+    if (confignode.inFlight > 0) return;
+    clearTimeout(confignode.idleTimer);
+    confignode.idleTimer = setTimeout(
+      () => closeIdle(confignode),
+      confignode.idleTimeoutMs
+    );
+  }
+
+  //Runs only with nothing in flight: sendStarted() clears the timer.
+  function closeIdle(confignode) {
+    let connection = confignode.connection;
+    if (!connection) return;
+    confignode.connection = undefined; //Before disconnect, so the drop is not reported
+    confignode.trace(
+      "No send for " + confignode.idleTimeoutMs + "ms, closing the connection"
+    );
+    closeConnection(confignode, connection);
   }
 };
